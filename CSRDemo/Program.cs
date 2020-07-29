@@ -6,9 +6,10 @@ using CSR;
 using System.Web.Script.Serialization;
 using System.Threading.Tasks;
 using ManageWindow;
-using System.Threading; 
+using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
+using PFShop;
 
 namespace CSRDemo
 {
@@ -19,54 +20,104 @@ namespace CSRDemo
         {
             Console.WriteLine(content);
         }
-        public static Task<T> StartSTATask<T>(Func<T> func)
-        {
-            var tcs = new TaskCompletionSource<T>();
-            var thread = new Thread(() =>
-            {
-                try
-                {
-                    tcs.SetResult(func());
-                }
-                catch (Exception e)
-                {
-                    tcs.SetException(e);
-                }
-            });
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-            return tcs.Task;
-        }
-        private static MainWindow win = null;
+        //public static Task<T> StartSTATask<T>(Func<T> func)
+        //{
+        //    var tcs = new TaskCompletionSource<T>();
+        //    var thread = new Thread(() =>
+        //    {
+        //        try
+        //        {
+        //            tcs.SetResult(func());
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            tcs.SetException(e);
+        //        }
+        //    });
+        //    thread.SetApartmentState(ApartmentState.STA);
+        //    thread.Start();
+        //    return tcs.Task;
+        //} 
+        //private static Task windowTask = null;
+        private static Thread windowthread = null;
+        private static ManualResetEvent manualResetEvent = null;
         private static void ShowSettingWindow()
         {
             try
             {
-                _ = Task.Run(() =>
-                  {
-                      Task t = StartSTATask(() =>
-                      {
-                          try
-                          {
-                              if (win == null) { win = new MainWindow(); }
-                              win.ShowDialog();
-                              win.Content = null;
-                              win = null;
-                              WriteLine("窗口已关闭!");
-                          }
-                          catch (Exception err)
-                          {
-                              WriteLine("窗体执行过程中发生错误\n信息" + err.ToString());
-                          }
-                          return true;
-                      });
-                      t.Wait(); 
-                      t.Dispose();
-                      GC.Collect();
-                  });
-
+                if (windowthread == null)
+                {
+                    windowthread = new Thread(new ThreadStart(() =>
+                    {
+                        while (true)
+                        {
+                            try
+                            {
+                                new MainWindow().ShowDialog();
+                                GC.Collect();
+                                manualResetEvent = new ManualResetEvent(false);
+                                manualResetEvent.WaitOne();
+                            }
+                            catch (Exception err) { WriteLine("窗体执行过程中发生错误\n信息" + err.ToString()); }
+                        }
+                    }));
+                    windowthread.SetApartmentState(ApartmentState.STA);
+                    windowthread.Start();
+                }
+                else
+                {
+                    manualResetEvent.Set();
+                }
+                //TimeOutThread thread = new TimeOutThread();
+                //thread.s
+                //    _ = Task.Run(() =>
+                //      {
+                //          if (windowTask == null)
+                //          {
+                //              windowTask = StartSTATask(() =>
+                //              {
+                //                  try
+                //                  {
+                //                      if (win == null) { win = new MainWindow(); }
+                //                      win.ShowDialog();
+                //                      //win.Content = null;
+                //                      //win = null;
+                //                      WriteLine("窗口已关闭!");
+                //                  }
+                //                  catch (Exception err)
+                //                  {
+                //                      WriteLine("窗体执行过程中发生错误\n信息" + err.ToString());
+                //                  }
+                //                  return true;
+                //              });
+                //              windowTask.Wait();
+                //              //windowTask.Dispose();
+                //              GC.Collect();
+                //          }
+                //          else
+                //          {
+                //              windowTask.ContinueWith(windowTask =>
+                //              { 
+                //                  try
+                //                  {
+                //                      if (win == null) { win = new MainWindow(); }
+                //                      win.ShowDialog();
+                //                      //win.Content = null;
+                //                      //win = null;
+                //                      WriteLine("窗口已关闭!");
+                //                  }
+                //                  catch (Exception err)
+                //                  {
+                //                      WriteLine("窗体执行过程中发生错误\n信息" + err.ToString());
+                //                  }
+                //              });
+                //          }
+                //      });
             }
-            catch (Exception err) { WriteLine(err.ToString()); }
+            catch (Exception err)
+            {
+                WriteLine(err.ToString());
+            }
         }
         public static void init(MCCSAPI api)
         {
@@ -424,7 +475,8 @@ namespace CSRDemo
                 //Console.WriteLine(dstr);
 
                 // 高级玩法，硬编码方式注册hook
-                THook.init(api);
+
+                //THook.init(api);
             }
             catch (Exception err) { WriteLine("插件遇到严重错误，无法继续运行\n错误信息:" + err.Message); }
         }
