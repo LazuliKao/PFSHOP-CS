@@ -33,5 +33,10 @@ namespace ManageWindow
         {
             Process.Start("https://github.com/littlegao233/PFShop-CS/releases");
         }
+
+        private void MaterialWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine("窗體加載成功！");
+        }
     }
 }

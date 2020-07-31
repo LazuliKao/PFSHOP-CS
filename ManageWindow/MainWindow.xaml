@@ -7,19 +7,24 @@
         xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
          xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" 
         mc:Ignorable="d"
-        Title="Window1" Height="300" Width="300">
+        Title="超級牛逼的WPF窗體" Height="300" Width="300"
+                     Loaded="MaterialWindow_Loaded"
+                     Background="#FF303030"
+                     >
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <materialDesign:BundledTheme BaseTheme="Dark" PrimaryColor="Purple" SecondaryColor="Lime" />
+                <materialDesign:BundledTheme BaseTheme="Dark" PrimaryColor="DeepPurple" SecondaryColor="Lime" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
                 <!-- material design styles -->
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/Generic.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignExtensions;component/Themes/Generic.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignExtensions;component/Themes/MaterialDesignLightTheme.xaml" />
-
-            </ResourceDictionary.MergedDictionaries>
+             </ResourceDictionary.MergedDictionaries>
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource MaterialDesignDarkForeground}" />
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
     <Grid>

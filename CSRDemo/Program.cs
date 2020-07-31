@@ -255,7 +255,7 @@ namespace CSRDemo
                     //"\n發佈日期\t" + System.Reflection.Assembly.GetExecutingAssembly().GetName()..ToString() +
                     "\n基於C#+WPF窗體" +
                     "\n当前CSRunnerAPI版本:" + api.VERSION +
-                    "\n控制台输入\"pf\"即可打开配置窗体(未完工)" +
+                    "\n控制台輸入\"pf\"即可打開快速配置窗體(未完善)" +
                     "\n████████████████████");
                 #region 读取配置
                 //商店信息
@@ -289,9 +289,9 @@ namespace CSRDemo
                             if (receForm.Tag == FormTag.recycleMain || receForm.Tag == FormTag.sellMain || receForm.Tag == FormTag.preferenceMain)
                                 SendMain(e.playername);
                             else if (receForm.Tag == FormTag.confirmSell)
-                                SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.sellMain) { title = "点击选择你想要购买的物品", content = "", buttons = GetSell((JArray)receForm.domain_source.Parent), domain = receForm.domain.Parent.Parent.Parent });
+                                SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.sellMain) { title = "点击选择你想要购买的物品", content = "", buttons = GetSell((JArray)receForm.domain_source), domain = receForm.domain.Parent.Parent.Parent });
                             else if (receForm.Tag == FormTag.confirmRecycle)
-                                SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.recycleMain) { title = "点击选择你想要回收的物品", content = "", buttons = GetRecycle((JArray)receForm.domain_source.Parent), domain = receForm.domain.Parent.Parent.Parent });
+                                SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.recycleMain) { title = "点击选择你想要回收的物品", content = "", buttons = GetRecycle((JArray)receForm.domain_source), domain = receForm.domain.Parent.Parent.Parent });
                             else
                                 Feedback(e.playername, "§7表单已关闭，未收到操作");
                         }
@@ -422,8 +422,8 @@ namespace CSRDemo
                                 case FormTag.confirmSell:
                                     try
                                     {
-                                        //receForm.domain;//选择项
-                                        int count = JArray.Parse(e.selected).Value<int>(0);
+                                        //receForm.domain;//选择项 
+                                        int count = Convert.ToInt32(JArray.Parse(e.selected)[0]);
                                         int total = (int)Math.Ceiling(receForm.domain.Value<decimal>("price") * count);
                                         if (total > 0)
                                         {
@@ -433,7 +433,7 @@ namespace CSRDemo
                                                 content = $"购买信息:\n  名称: {receForm.domain.Value<string>("name")}\n  数量: {count}\n  总价: {total}\n\n点击确认即可发送购买请求",
                                                 buttons = new JArray { "确认购买", "我再想想" },
                                                 domain = new JObject { new JProperty("item", receForm.domain), new JProperty("count", count), new JProperty("total", total), },
-                                                domain_source = (JArray)receForm.domain
+                                                domain_source = (JArray)receForm.domain.Parent
                                             });
                                         }
                                         else
@@ -444,30 +444,29 @@ namespace CSRDemo
                                 case FormTag.confirmRecycle:
                                     try
                                     {    //receForm.domain;//选择项
-                                        int count = JArray.Parse(e.selected).Value<int>(0);
+                                        int count = Convert.ToInt32(JArray.Parse(e.selected)[0]);
                                         int total = (int)Math.Floor(receForm.domain.Value<decimal>("award") * count);
                                         if (total > 0)
                                         {
-                                            SendForm(new FormINFO(e.playername, FormType.Model, FormTag.confirmedSell)
+                                            SendForm(new FormINFO(e.playername, FormType.Model, FormTag.confirmedRecycle)
                                             {
                                                 title = "确认回收",
                                                 content = $"回收信息:\n  名称: {receForm.domain.Value<string>("name")}\n  数量: {count}\n  收益: {total}\n\n点击确认即可发送回收请求",
                                                 buttons = new JArray { "确认回收", "我再想想" },
                                                 domain = new JObject { new JProperty("item", receForm.domain), new JProperty("count", count), new JProperty("total", total), },
-                                                domain_source = (JArray)receForm.domain
+                                                domain_source = (JArray)receForm.domain.Parent
                                             });
-                                            //ConfirmForm(je.playername, 'confirmedSell', '确认购买', '购买信息:', new Array(item, count, total))
                                         }
                                         else { Feedback(e.playername, "数值无效！"); }
                                     }
-                                    catch (Exception err) { WriteLine("confirmSell ERROR\n" + err.ToString()); }
+                                    catch (Exception err) { WriteLine("confirmRecycle ERROR\n" + err.ToString()); }
                                     break;
                                 case FormTag.confirmedSell:
                                     try
                                     {
                                         if (e.selected == "true")
                                         {
-                                            JObject item = receForm.domain.Value<JObject>("item");
+                                            JObject item = (JObject)receForm.domain["item"];
                                             int total = receForm.domain.Value<int>("total");
                                             int count = receForm.domain.Value<int>("count");
                                             ExecuteCMD(e.playername, $"tag @s[scores={{money=..{total}}}] remove buy_success");
@@ -491,7 +490,66 @@ namespace CSRDemo
                                     catch (Exception err) { WriteLine("confirmedSell ERROR\n" + err.ToString()); }
                                     break;
                                 case FormTag.confirmedRecycle:
+                                    try
+                                    {
+                                        if (e.selected == "true")
+                                        {
+                                            JObject item = receForm.domain.Value<JObject>("item");
+                                            int total = receForm.domain.Value<int>("total");
+                                            int count = receForm.domain.Value<int>("count");
+                                            WriteLine("-------TEST------");
+                                            string uuid = GetUUID(e.playername);
+                                            // public static string GetUUID(string name) => JArray.Parse(api.getOnLinePlayers()).First(l => l.Value<string>("playername") == name).Value<string>("uuid");
+                                            WriteLine(uuid);
+                                            WriteLine(api.getPlayerItems(uuid));
+                                            WriteLine("-------TEST------");
+                                            File.WriteAllText("plugins\\pfshop\\test.json", api.getPlayerItems(GetUUID(e.playername)));
+                                            //JArray inventory = (JArray)JObject.Parse(api.getPlayerItems(GetUUID(e.playername)))["Inventory"]["tv"];
+                                            //File.WriteAllText("plugins\\pfshop\\test.json", inventory.ToString());
+                                            //WriteLine("a");
+                                            //int totalcount = 0;
+                                            //foreach (JObject slotbase in inventory)
+                                            //{
+                                            //    WriteLine("b");
+                                            //    WriteLine("b");
+                                            //    try
+                                            //    {
+                                            //        var slot = slotbase["tv"].ToList();
+                                            //        int name_i = slot.FindIndex(l => l["ck"].ToString() == "Name");
+                                            //        if (slot[name_i]["cv"]["tv"].ToString() == ("minecraft:" + item["id"]))
+                                            //        {
+                                            //            bool block_matched = true;
+                                            //            if (item["damage"].ToString() != "-1")
+                                            //            {
+                                            //                block_matched = Regex.IsMatch(slot.ToString(), item["regex"].ToString());
+                                            //            }
+                                            //            if (block_matched)
+                                            //            {
+                                            //                int count_i = slot.FindIndex(l => l["ck"].ToString() == "Count");
+                                            //                totalcount += int.Parse(slot[count_i]["cv"]["tv"].ToString());
+                                            //            }
+                                            //        }
+                                            //    }
+                                            //    catch (Exception) { }
+                                            //}
 
+                                            //ExecuteCMD(e.playername, "titleraw @s times 5 25 10");
+                                            //if (totalcount >= count)
+                                            //{
+                                            //    ExecuteCMD(e.playername, $"clear @s {item["id"]} {item["damage"]} {count}");
+                                            //    ExecuteCMD(e.playername, "scoreboard players add @s money " + total);
+                                            //    ExecuteCMD(e.playername, "titleraw @s title {\"rawtext\":[{\"text\":\"\n\n\n§a回收成功\"}]}");
+                                            //    ExecuteCMD(e.playername, $"titleraw @s subtitle {{\"rawtext\":[{{\"text\":\"回收了 {count} 个 {item["name"]} 获得 {total} 像素币\"}}]}}");
+                                            //}
+                                            //else
+                                            //{
+                                            //    ExecuteCMD(e.playername, "titleraw @s title {\"rawtext\":[{\"text\":\"\n\n\n§c回收失败！\"}]}");
+                                            //    ExecuteCMD(e.playername, $"titleraw @s subtitle {{\"rawtext\":[{{\"text\":\"你背包里只有 {totalcount} 个 {item["name"]}\"}}]}}");
+                                            //}
+                                        }
+                                        else { Feedback(e.playername, "回收已取消"); }
+                                    }
+                                    catch (Exception err) { WriteLine("confirmedRecycle ERROR\n" + err.ToString()); }
                                     break;
                                 case FormTag.preferenceMain:
                                     try
@@ -518,7 +576,6 @@ namespace CSRDemo
                     {
                         WriteLine("出错>位于onFormSelect\n" + err.Message);
                     }
-
                     return false;
                 });
 
@@ -577,8 +634,7 @@ namespace CSRDemo
                 });
                 #endregion
                 #endregion
-                #region MODEL
-
+                #region MODEL 
                 //// 后台指令输出监听
                 //api.addBeforeActListener(EventKey.onServerCmdOutput, x => {
                 //	Console.WriteLine("[CS] type = {0}, mode = {1}, result= {2}", x.type, x.mode, x.result);
