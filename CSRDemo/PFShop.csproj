@@ -12,7 +12,7 @@
     <AssemblyName>PFShop.csr</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
+    <Deterministic>false</Deterministic>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
@@ -69,10 +69,10 @@
     <Compile Include="BDS\Events.cs" />
     <Compile Include="BDS\MCCSAPI.cs" />
     <Compile Include="BDS\Plugin.cs" />
+    <Compile Include="Form.cs" />
     <Compile Include="Hook.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ThreadAPI.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="C#插件开发指南.txt" />
@@ -99,7 +99,9 @@
   <PropertyGroup>
     <PostBuildEvent>del /f $(TargetDir)MaterialDesignThemes.Wpf.xml
 del /f $(TargetDir)PFShop.csr.pdb
-del /f $(TargetDir)Newtonsoft.Json.xml</PostBuildEvent>
+del /f $(TargetDir)Newtonsoft.Json.xml
+del /f $(TargetDir)MaterialDesignExtensions.xml
+del /f $(TargetDir)ManageWindow.exe.config</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\MaterialDesignThemes.3.1.3\build\MaterialDesignThemes.targets" Condition="Exists('..\packages\MaterialDesignThemes.3.1.3\build\MaterialDesignThemes.targets')" />
 </Project>

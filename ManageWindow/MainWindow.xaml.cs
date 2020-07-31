@@ -24,5 +24,9 @@ namespace ManageWindow
         {
             InitializeComponent();
         }
+        ~MainWindow()
+        {
+            this.Content = null;
+        }
     }
 }
