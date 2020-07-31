@@ -31,6 +31,6 @@ namespace PFShop
         public uint id;
         public string playeruuid, playername, title;
         public JToken content, domain;
-        public JArray buttons;
+        public JArray buttons,domain_source;
     }
 }

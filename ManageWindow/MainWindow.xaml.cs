@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,7 +27,11 @@ namespace ManageWindow
         }
         ~MainWindow()
         {
-            this.Content = null;
+            //this.Content = null;
+        } 
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("https://github.com/littlegao233/PFShop-CS/releases");
         }
     }
 }

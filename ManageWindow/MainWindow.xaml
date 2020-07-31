@@ -30,6 +30,6 @@
         </Grid.RowDefinitions>
         <TextBlock Text="还没做完" FontSize="40" HorizontalAlignment="Center" />
         <TextBlock Text="咕咕咕~" FontSize="20" HorizontalAlignment="Center"  Grid.Row ="1"/>
-        <Button   Grid.Row="2" Margin="20"/>
+        <Button Content="去GitHub查看更新进度"  Grid.Row="2" Margin="20" Click="Button_Click"/>
     </Grid>
 </mde:MaterialWindow>

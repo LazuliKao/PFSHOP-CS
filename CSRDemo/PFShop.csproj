@@ -82,7 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ManageWindow\ManageWindow.csproj">
-      <Project>{0c9ec278-d2e2-427b-a21d-38c14e0d0d61}</Project>
+      <Project>{0C9EC278-D2E2-427B-A21D-38C14E0D0D61}</Project>
       <Name>ManageWindow</Name>
     </ProjectReference>
   </ItemGroup>

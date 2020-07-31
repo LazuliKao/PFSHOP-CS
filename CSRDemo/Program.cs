@@ -1,22 +1,16 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using CSR;
-using System.Web.Script.Serialization;
 using System.Threading.Tasks;
 using ManageWindow;
 using System.Threading;
-using System.Windows;
-using System.Windows.Threading;
 using Newtonsoft.Json.Linq;
 using System.Linq;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Linq.Expressions;
 using PFShop;
 using static PFShop.FormINFO;
-using System.Runtime.CompilerServices;
 //using PFShop;
 
 namespace CSRDemo
@@ -48,7 +42,7 @@ namespace CSRDemo
         //} 
         //private static Task windowTask = null;
         private static Thread windowthread = null;
-        private static ManualResetEvent manualResetEvent = null;
+        private static AutoResetEvent autoResetEvent = new AutoResetEvent(false);
         private static bool windowOpened = false;
         private static void ShowSettingWindow()
         {
@@ -58,25 +52,30 @@ namespace CSRDemo
                 {
                     windowthread = new Thread(new ThreadStart(() =>
                     {
-                        while (true)
+                        try
                         {
-                            try
+                            WriteLine("正在加载WPF库");
+                            while (true)
                             {
-                                windowOpened = true;
-                                new MainWindow().ShowDialog();
-                                GC.Collect();
-                                manualResetEvent = new ManualResetEvent(false);
-                                windowOpened = false;
-                                manualResetEvent.WaitOne();
+                                try
+                                {
+                                    windowOpened = true;
+                                    new MainWindow().ShowDialog();
+                                    GC.Collect();
+                                    windowOpened = false;
+                                    autoResetEvent.WaitOne();
+                                    autoResetEvent.Reset();
+                                }
+                                catch (Exception err) { WriteLine("窗体执行过程中发生错误\n信息" + err.ToString()); }
                             }
-                            catch (Exception err) { WriteLine("窗体执行过程中发生错误\n信息" + err.ToString()); }
                         }
+                        catch (Exception err) { WriteLine("窗体线程发生严重错误\n信息" + err.ToString()); windowthread = null; }
                     }));
                     windowthread.SetApartmentState(ApartmentState.STA);
                     windowthread.Start();
                 }
                 else
-                { if (windowOpened) WriteLine("窗体已经打开"); else manualResetEvent.Set(); }
+                { if (windowOpened) WriteLine("窗体已经打开"); else autoResetEvent.Set(); }
             }
             catch (Exception err)
             {
@@ -114,13 +113,13 @@ namespace CSRDemo
             ExecuteCMD(playername, "titleraw @s subtitle {\"rawtext\":[{\"text\":\"§a   Loading    §a\"}]}");
             _ = Task.Run(() =>
             {
-                Thread.Sleep(250);
+                Thread.Sleep(100);
                 ExecuteCMD(playername, "titleraw @s subtitle {\"rawtext\":[{\"text\":\"§a   Loading..   §a\"}]}");
-                Thread.Sleep(250);
+                Thread.Sleep(100);
                 ExecuteCMD(playername, "titleraw @s subtitle {\"rawtext\":[{\"text\":\"§a   Loading....  §a\"}]}");
-                Thread.Sleep(250);
+                Thread.Sleep(100);
                 ExecuteCMD(playername, "titleraw @s subtitle {\"rawtext\":[{\"text\":\"§a   Loading...... §a\"}]}");
-                Thread.Sleep(250);
+                Thread.Sleep(100);
                 ExecuteCMD(playername, "titleraw @s clear");
             });
         }
@@ -240,6 +239,7 @@ namespace CSRDemo
             {
                 Thread.Sleep(10000);
                 api.runcmd("scoreboard objectives add money dummy §b像素币");
+
             });
             try
             {
@@ -287,13 +287,13 @@ namespace CSRDemo
                         if (e.selected == "null")
                         {
                             if (receForm.Tag == FormTag.recycleMain || receForm.Tag == FormTag.sellMain || receForm.Tag == FormTag.preferenceMain)
-                            {
                                 SendMain(e.playername);
-                            }
+                            else if (receForm.Tag == FormTag.confirmSell)
+                                SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.sellMain) { title = "点击选择你想要购买的物品", content = "", buttons = GetSell((JArray)receForm.domain_source.Parent), domain = receForm.domain.Parent.Parent.Parent });
+                            else if (receForm.Tag == FormTag.confirmRecycle)
+                                SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.recycleMain) { title = "点击选择你想要回收的物品", content = "", buttons = GetRecycle((JArray)receForm.domain_source.Parent), domain = receForm.domain.Parent.Parent.Parent });
                             else
-                            {
                                 Feedback(e.playername, "§7表单已关闭，未收到操作");
-                            }
                         }
                         else
                         {
@@ -348,10 +348,8 @@ namespace CSRDemo
                                     {
                                         if (e.selected == "0")
                                         {
-                                            if (receForm.domain.Path == "sell")
-                                                SendMain(e.playername);
-                                            else
-                                                SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.sellMain) { title = "点击选择你想要购买的物品", content = "", buttons = GetSell((JArray)receForm.domain.Parent.Parent.Parent), domain = receForm.domain.Parent.Parent.Parent });
+                                            if (receForm.domain.Path == "sell") SendMain(e.playername);
+                                            else SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.sellMain) { title = "点击选择你想要购买的物品", content = "", buttons = GetSell((JArray)receForm.domain.Parent.Parent.Parent), domain = receForm.domain.Parent.Parent.Parent });
                                         }
                                         else
                                         {
@@ -389,10 +387,8 @@ namespace CSRDemo
                                     {
                                         if (e.selected == "0")
                                         {
-                                            if (receForm.domain.Path == "recycle")
-                                                SendMain(e.playername);
-                                            else
-                                                SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.recycleMain) { title = "点击选择你想要回收的物品", content = "", buttons = GetRecycle((JArray)receForm.domain.Parent.Parent.Parent), domain = receForm.domain.Parent.Parent.Parent });
+                                            if (receForm.domain.Path == "recycle") SendMain(e.playername);
+                                            else SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.recycleMain) { title = "点击选择你想要回收的物品", content = "", buttons = GetRecycle((JArray)receForm.domain.Parent.Parent.Parent), domain = receForm.domain.Parent.Parent.Parent });
                                         }
                                         else
                                         {
@@ -436,9 +432,9 @@ namespace CSRDemo
                                                 title = "确认购买",
                                                 content = $"购买信息:\n  名称: {receForm.domain.Value<string>("name")}\n  数量: {count}\n  总价: {total}\n\n点击确认即可发送购买请求",
                                                 buttons = new JArray { "确认购买", "我再想想" },
-                                                domain = new JObject { new JProperty("item", receForm.domain), new JProperty("count", count), new JProperty("total", total), }
+                                                domain = new JObject { new JProperty("item", receForm.domain), new JProperty("count", count), new JProperty("total", total), },
+                                                domain_source = (JArray)receForm.domain
                                             });
-                                            //ConfirmForm(je.playername, 'confirmedSell', '确认购买', '购买信息:', new Array(item, count, total))
                                         }
                                         else
                                         { Feedback(e.playername, "数值无效！"); }
@@ -447,8 +443,7 @@ namespace CSRDemo
                                     break;
                                 case FormTag.confirmRecycle:
                                     try
-                                    {
-                                        //receForm.domain;//选择项
+                                    {    //receForm.domain;//选择项
                                         int count = JArray.Parse(e.selected).Value<int>(0);
                                         int total = (int)Math.Floor(receForm.domain.Value<decimal>("award") * count);
                                         if (total > 0)
@@ -458,7 +453,8 @@ namespace CSRDemo
                                                 title = "确认回收",
                                                 content = $"回收信息:\n  名称: {receForm.domain.Value<string>("name")}\n  数量: {count}\n  收益: {total}\n\n点击确认即可发送回收请求",
                                                 buttons = new JArray { "确认回收", "我再想想" },
-                                                domain = new JObject { new JProperty("item", receForm.domain), new JProperty("count", count), new JProperty("total", total), }
+                                                domain = new JObject { new JProperty("item", receForm.domain), new JProperty("count", count), new JProperty("total", total), },
+                                                domain_source = (JArray)receForm.domain
                                             });
                                             //ConfirmForm(je.playername, 'confirmedSell', '确认购买', '购买信息:', new Array(item, count, total))
                                         }
