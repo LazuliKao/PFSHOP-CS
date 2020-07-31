@@ -236,6 +236,11 @@ namespace CSRDemo
         #endregion
         public static void init(MCCSAPI base_api)
         {
+            _ = Task.Run(() =>
+            {
+                Thread.Sleep(10000);
+                api.runcmd("scoreboard objectives add money dummy §b像素币");
+            });
             try
             {
                 #region 加载
@@ -490,8 +495,23 @@ namespace CSRDemo
                                     catch (Exception err) { WriteLine("confirmedSell ERROR\n" + err.ToString()); }
                                     break;
                                 case FormTag.confirmedRecycle:
+
                                     break;
                                 case FormTag.preferenceMain:
+                                    try
+                                    {
+                                        var set = JArray.Parse(e.selected).ToList().ConvertAll(l => int.Parse(l.ToString()));
+                                        int[] size = new int[] { 8, 16, 32, 64, 128, 256 };
+                                        preference[e.playername]["sell"]["input_type"] = set[0];
+                                        preference[e.playername]["sell"]["slide_size_i"] = set[1];
+                                        preference[e.playername]["sell"]["slide_size"] = size[set[1]];
+                                        preference[e.playername]["recycle"]["input_type"] = set[2];
+                                        preference[e.playername]["recycle"]["slide_size_i"] = set[3];
+                                        preference[e.playername]["recycle"]["slide_size"] = size[set[3]];
+                                        SavePreference();
+                                        Feedback(e.playername, "个人设置保存成功");
+                                    }
+                                    catch (Exception err) { WriteLine("preferenceMain ERROR\n" + err.ToString()); }
                                     break;
                                 default:
                                     break;

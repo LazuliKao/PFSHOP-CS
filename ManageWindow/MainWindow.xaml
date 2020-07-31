@@ -23,7 +23,13 @@
         </ResourceDictionary>
     </Window.Resources>
     <Grid>
-        <TextBlock Text="TEST" FontSize="40" HorizontalAlignment="Center"/>
-        <Button/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="还没做完" FontSize="40" HorizontalAlignment="Center" />
+        <TextBlock Text="咕咕咕~" FontSize="20" HorizontalAlignment="Center"  Grid.Row ="1"/>
+        <Button   Grid.Row="2" Margin="20"/>
     </Grid>
 </mde:MaterialWindow>
