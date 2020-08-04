@@ -25,10 +25,10 @@ namespace ManageWindow
         {
             InitializeComponent();
         }
-        ~MainWindow()
-        {
-            //this.Content = null;
-        } 
+        //~MainWindow()
+        //{
+        //    //this.Content = null;
+        //} 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             Process.Start("https://github.com/littlegao233/PFShop-CS/releases");
