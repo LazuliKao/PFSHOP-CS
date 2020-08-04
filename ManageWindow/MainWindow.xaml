@@ -10,6 +10,7 @@
         Title="超級牛逼的WPF窗體" Height="300" Width="300"
                      Loaded="MaterialWindow_Loaded"
                      Background="#FF303030"
+                     FontFamily="Microsoft YaHei"
                      >
     <Window.Resources>
         <ResourceDictionary>

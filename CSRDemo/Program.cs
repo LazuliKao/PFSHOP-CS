@@ -497,13 +497,15 @@ namespace CSRDemo
                                             JObject item = receForm.domain.Value<JObject>("item");
                                             int total = receForm.domain.Value<int>("total");
                                             int count = receForm.domain.Value<int>("count");
-                                            WriteLine("-------TEST------");
-                                            string uuid = GetUUID(e.playername);
-                                            // public static string GetUUID(string name) => JArray.Parse(api.getOnLinePlayers()).First(l => l.Value<string>("playername") == name).Value<string>("uuid");
-                                            WriteLine(uuid);
-                                            WriteLine(api.getPlayerItems(uuid));
-                                            WriteLine("-------TEST------");
-                                            File.WriteAllText("plugins\\pfshop\\test.json", api.getPlayerItems(GetUUID(e.playername)));
+                                            //WriteLine("-------TEST------");
+                                            //string uuid = GetUUID(e.playername);
+                                            //// public static string GetUUID(string name) => JArray.Parse(api.getOnLinePlayers()).First(l => l.Value<string>("playername") == name).Value<string>("uuid");
+                                            //WriteLine(uuid);
+                                            //WriteLine(api.getPlayerItems(uuid));
+                                            //WriteLine("-------TEST------");
+                                            //File.WriteAllText("plugins\\pfshop\\test.json", api.getPlayerItems(GetUUID(e.playername)));
+
+                                            //string getitems=
                                             //JArray inventory = (JArray)JObject.Parse(api.getPlayerItems(GetUUID(e.playername)))["Inventory"]["tv"];
                                             //File.WriteAllText("plugins\\pfshop\\test.json", inventory.ToString());
                                             //WriteLine("a");
@@ -531,8 +533,7 @@ namespace CSRDemo
                                             //        }
                                             //    }
                                             //    catch (Exception) { }
-                                            //}
-
+                                            //} 
                                             //ExecuteCMD(e.playername, "titleraw @s times 5 25 10");
                                             //if (totalcount >= count)
                                             //{
