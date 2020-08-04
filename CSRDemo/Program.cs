@@ -11,16 +11,32 @@ using System.IO;
 using System.Text.RegularExpressions;
 using PFShop;
 using static PFShop.FormINFO;
+using System.Collections;
+using Ookii.Dialogs.Wpf;
+using System.Diagnostics;
 //using PFShop;
 
-namespace CSRDemo
+namespace PFShop
 {
     public class Program
     {
         private static MCCSAPI api = null;
         public static void WriteLine(object content)
         {
-            Console.WriteLine(content);
+            Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} PFSHOP] {content}");
+        }
+        public static void WriteLineERR(object type, object content)
+        {
+            Console.Write($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} PFSHOP]");
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write("[ERROR]");
+            Console.BackgroundColor = ConsoleColor.DarkRed;
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write($">{type}<");
+            ResetConsoleColor();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"{content}");
+            ResetConsoleColor();
         }
         //public static Task<T> StartSTATask<T>(Func<T> func)
         //{
@@ -77,7 +93,11 @@ namespace CSRDemo
                 else
                 { if (windowOpened) WriteLine("窗体已经打开"); else autoResetEvent.Set(); }
             }
-            catch (Exception err)
+            catch (Exception
+#if DEBUG
+            err
+#endif
+            )
             {
 #if DEBUG
                 WriteLine(err.ToString());
@@ -233,36 +253,108 @@ namespace CSRDemo
         public static string preferencePath = Path.GetFullPath("plugins\\pfshop\\preference.json");
         public static void SavePreference() => File.WriteAllText(preferencePath, preference.ToString());
         #endregion
+        private static ConsoleColor defaultForegroundColor = ConsoleColor.White;
+        private static ConsoleColor defaultBackgroundColor = ConsoleColor.Black;
+        private static void ResetConsoleColor()
+        {
+            Console.ForegroundColor = defaultForegroundColor;
+            Console.BackgroundColor = defaultBackgroundColor;
+        }
         public static void init(MCCSAPI base_api)
         {
             _ = Task.Run(() =>
             {
-                Thread.Sleep(10000);
+                Thread.Sleep(11000);
                 api.runcmd("scoreboard objectives add money dummy §b像素币");
-
             });
             try
             {
+
                 #region 加载
                 api = base_api;
                 Console.OutputEncoding = Encoding.UTF8;
-                WriteLine("████████████████████" +
-                    "\n正在裝載PFSHOP" +
-                    "\n作者       \tgxh2004" +
-                    "\n版本信息\tv" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() +
-                    "\n适用于bds1.16.1(CSR1.16.1v4)" +
-                    "\n如版本不同可能存在问题" +
-                    //"\n發佈日期\t" + System.Reflection.Assembly.GetExecutingAssembly().GetName()..ToString() +
-                    "\n基於C#+WPF窗體" +
-                    "\n当前CSRunnerAPI版本:" + api.VERSION +
-                    "\n控制台輸入\"pf\"即可打開快速配置窗體(未完善)" +
-                    "\n████████████████████");
+                defaultForegroundColor = Console.ForegroundColor;
+                defaultBackgroundColor = Console.BackgroundColor;
+                #region INFO
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.BackgroundColor = ConsoleColor.Magenta;
+                Dictionary<string, int> authorsInfo = new Dictionary<string, int>() {
+                    //{ "███████████████████████████\t",0 },
+                    { "正在裝載PFSHOP",6 },
+                    { "作者       \tgxh2004", 5},
+                    { "版本信息\tv" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() ,4 },
+                    { "适用于bds1.16.1(CSR1.16.1v4)" ,4 },
+                    { "如版本不同可能存在问题", 5},
+                    { "基於C#+WPF窗體" , 6},
+                    { "当前CSRunnerAPI版本:" + api.VERSION , 4},
+                    { "控制台輸入\"pf\"即可打開快速配置窗體(未完善)" , 2},
+                    //{ "████████████████████████",1 },
+                 };
+                foreach (var item in authorsInfo)
+                {
+                    string input = item.Key;
+                    for (int i = 0; i < item.Value; i++) input += "\t";
+                    Console.WriteLine(input);
+                }
+                ResetConsoleColor();
+                #endregion 
+#if !DEBUG 
+                #region EULA
+                if (!Directory.Exists(Path.GetDirectoryName(shopdataPath))) Directory.CreateDirectory(Path.GetDirectoryName(shopdataPath));
+                string eulaPath = Path.GetDirectoryName(shopdataPath) + "\\EULA";
+                string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                JObject eulaINFO = new JObject { new JProperty("author", "gxh"), new JProperty("version", version) };
+                try
+                {
+                    if (File.Exists(eulaPath))
+                    {
+                        if (Encoding.UTF32.GetString(File.ReadAllBytes(eulaPath)) != StringToUnicode(eulaINFO.ToString()).GetHashCode().ToString())
+                        {
+                            WriteLineERR("EULA", "使用条款需要更新!");
+                            File.Delete(eulaPath);
+                            throw new Exception();
+                        }
+                    }
+                    else throw new Exception();
+                }
+                catch (Exception)
+                {
+                    using (TaskDialog dialog = new TaskDialog())
+                    {
+                        dialog.WindowTitle = "接受食用条款";
+                        dialog.MainInstruction = "假装下面是本插件的食用条款";
+                        dialog.Content =
+                            "1.请在遵守CSRunner前置使用协议的前提下使用本插件\n" +
+                            "2.不保证本插件不会影响服务器正常运行，如使用本插件造成服务端奔溃等问题，均与作者无瓜\n" +
+                            "3.严厉打击插件倒卖等行为，共同维护良好的开源环境";
+                        dialog.ExpandedInformation = "点开淦嘛,没东西[doge]";
+                        dialog.Footer = "本插件 <a href=\"https://github.com/littlegao233/PFShop-CS\">GitHub开源地址</a>.";
+                        dialog.HyperlinkClicked += new EventHandler<HyperlinkClickedEventArgs>((sender, e) => { Process.Start("https://github.com/littlegao233/PFShop-CS"); });
+                        dialog.FooterIcon = TaskDialogIcon.Information;
+                        dialog.EnableHyperlinks = true;
+                        TaskDialogButton acceptButton = new TaskDialogButton("接受");
+                        dialog.Buttons.Add(acceptButton);
+                        TaskDialogButton refuseButton = new TaskDialogButton("拒绝并关闭本插件");
+                        dialog.Buttons.Add(refuseButton);
+                        if (dialog.ShowDialog() == refuseButton)
+                            throw new Exception("---尚未接受食用条款，本插件加载失败---");
+                    }
+                    File.WriteAllBytes(eulaPath, Encoding.UTF32.GetBytes(StringToUnicode(eulaINFO.ToString()).GetHashCode().ToString()));
+                }
+                #endregion
+#endif
                 #region 读取配置
                 //商店信息
                 try
                 {
                     if (!Directory.Exists(Path.GetDirectoryName(shopdataPath))) Directory.CreateDirectory(Path.GetDirectoryName(shopdataPath));
-                    if (File.Exists(shopdataPath)) shopdata = JObject.Parse(File.ReadAllText(shopdataPath)); else SaveShopdata();
+                    if (File.Exists(shopdataPath)) shopdata = JObject.Parse(File.ReadAllText(shopdataPath));
+                    else
+                    {
+                        shopdata = JObject.Parse("{\"recycle\":[{\"type\":\"基础方块\",\"order\":\"1\",\"image\":\"textures/blocks/grass_side_carried\",\"content\":[{\"order\":\"2\",\"name\":\"泥土\",\"id\":\"dirt\",\"damage\":\"-1\",\"regex\":\"\",\"award\":1,\"image\":\"textures/blocks/dirt\"},{\"order\":\"3\",\"name\":\"木头\",\"id\":\"log\",\"damage\":\"-1\",\"regex\":\"\",\"award\":3,\"image\":\"textures/blocks/log_oak\"},{\"order\":\"4\",\"name\":\"圆石\",\"id\":\"cobblestone\",\"damage\":\"-1\",\"regex\":\"\",\"award\":2,\"image\":\"textures/blocks/cobblestone\"}]},{\"type\":\"各类矿物\",\"order\":\"30\",\"image\":false,\"content\":[{\"order\":\"31\",\"name\":\"煤炭\",\"id\":\"coal\",\"damage\":\"-1\",\"regex\":\"\",\"award\":10,\"image\":\"textures/items/coal\"},{\"order\":\"32\",\"name\":\"铁锭\",\"id\":\"iron_ingot\",\"damage\":\"-1\",\"regex\":\"\",\"award\":50,\"image\":\"textures/items/iron_ingot\"},{\"order\":\"33\",\"name\":\"金锭\",\"id\":\"gold_ingot\",\"damage\":\"-1\",\"regex\":\"\",\"award\":100,\"image\":\"textures/items/gold_ingot\"},{\"order\":\"34\",\"name\":\"青金石\",\"id\":\"dye\",\"damage\":\"4\",\"regex\":\"\\\\{\\\"ck\\\":\\\"Damage\\\",\\\"cv\\\":\\\\{\\\"tt\\\":2,\\\"tv\\\":4\\\\}\\\\}\",\"award\":80,\"image\":\"textures/items/dye_powder_blue\"},{\"order\":\"35\",\"name\":\"红石\",\"id\":\"redstone\",\"damage\":\"-1\",\"regex\":\"\",\"award\":20,\"image\":\"textures/items/redstone_dust\"},{\"order\":\"36\",\"name\":\"钻石\",\"id\":\"diamond\",\"damage\":\"-1\",\"regex\":\"\",\"award\":200,\"image\":\"textures/items/diamond\"},{\"order\":\"37\",\"name\":\"绿宝石\",\"id\":\"emerald\",\"damage\":\"-1\",\"regex\":\"\",\"award\":60,\"image\":\"textures/items/emerald\"}]},{\"type\":\"杂物/生活用品\",\"order\":\"46\",\"image\":false,\"content\":[{\"order\":\"47\",\"name\":\"马鞍\",\"id\":\"saddle\",\"damage\":\"-1\",\"regex\":\"\",\"award\":300,\"image\":\"textures/items/saddle\"},{\"order\":\"48\",\"name\":\"末影珍珠\",\"id\":\"ender_pearl\",\"damage\":\"-1\",\"regex\":\"\",\"award\":200,\"image\":\"textures/items/ender_pearl\"}]}],\"sell\":[{\"type\":\"基础方块\",\"order\":\"1\",\"image\":\"textures/blocks/grass_side_carried\",\"content\":[{\"order\":\"2\",\"name\":\"泥土\",\"id\":\"dirt\",\"damage\":\"0\",\"price\":\"2.00\",\"image\":\"textures/blocks/dirt\"},{\"type\":\"各种木头\",\"order\":\"18\",\"image\":\"textures/blocks/log_oak\",\"content\":[{\"order\":\"20\",\"name\":\"橡木原木\",\"id\":\"log\",\"damage\":\"1\",\"price\":\"5.00\",\"image\":\"textures/blocks/log_oak\"},{\"order\":\"21\",\"name\":\"云杉原木\",\"id\":\"log\",\"damage\":\"2\",\"price\":\"7.00\",\"image\":\"textures/blocks/log_spruce\"},{\"order\":\"22\",\"name\":\"白桦原木\",\"id\":\"log\",\"damage\":\"3\",\"price\":\"6.00\",\"image\":\"textures/blocks/log_birch\"},{\"order\":\"23\",\"name\":\"丛林原木\",\"id\":\"log\",\"damage\":\"4\",\"price\":\"8.00\",\"image\":\"textures/blocks/log_jungle\"},{\"order\":\"24\",\"name\":\"金合欢原木\",\"id\":\"log2\",\"damage\":\"1\",\"price\":\"9.00\",\"image\":\"textures/blocks/log_acacia\"},{\"order\":\"25\",\"name\":\"深色橡木原木\",\"id\":\"log2\",\"damage\":\"2\",\"price\":\"7.50\",\"image\":\"textures/blocks/log_big_oak\"}]},{\"order\":\"47\",\"name\":\"马鞍\",\"id\":\"saddle\",\"damage\":\"0\",\"price\":\"500.00\",\"image\":\"textures/items/saddle\"},{\"order\":\"48\",\"name\":\"末影珍珠\",\"id\":\"ender_pearl\",\"damage\":\"0\",\"price\":\"1000.00\",\"image\":\"textures/items/ender_pearl\"},{\"order\":\"49\",\"name\":\"海洋之心\",\"id\":\"heart_of_the_sea\",\"damage\":\"0\",\"price\":\"6666.67\",\"image\":\"textures/items/heartofthesea_closed\"}]},{\"type\":\"建筑党专用\",\"order\":\"81\",\"image\":\"textures/blocks/brick\",\"content\":[{\"type\":\"陶土类\",\"order\":\"82\",\"image\":false,\"content\":[{\"order\":\"83\",\"name\":\"白色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"0\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_white\"},{\"order\":\"84\",\"name\":\"橙色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"1\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_orange\"},{\"order\":\"85\",\"name\":\"品红色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"2\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_magenta\"},{\"order\":\"86\",\"name\":\"淡蓝色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"3\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_light_blue\"},{\"order\":\"87\",\"name\":\"黄色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"4\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_yellow\"},{\"order\":\"88\",\"name\":\"黄绿色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"5\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_lime\"},{\"order\":\"89\",\"name\":\"粉红色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"6\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_pink\"},{\"order\":\"90\",\"name\":\"灰色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"7\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_gray\"},{\"order\":\"91\",\"name\":\"淡灰色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"8\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_silver\"},{\"order\":\"92\",\"name\":\"青色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"9\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_cyan\"},{\"order\":\"93\",\"name\":\"紫色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"10\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_purple\"},{\"order\":\"94\",\"name\":\"蓝色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"11\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_blue\"},{\"order\":\"95\",\"name\":\"棕色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"12\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_brown\"},{\"order\":\"96\",\"name\":\"绿色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"13\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_green\"},{\"order\":\"97\",\"name\":\"红色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"14\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_red\"},{\"order\":\"98\",\"name\":\"黑色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"15\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_black\"},{\"order\":\"99\",\"name\":\"陶瓦\",\"id\":\"\\r\\nhardened_clay\",\"damage\":\"0\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay\"}]},{\"type\":\"羊毛类\",\"order\":\"101\",\"image\":false,\"content\":[{\"order\":\"102\",\"name\":\"白色羊毛\",\"id\":\"wool\",\"damage\":\"0\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_white\"},{\"order\":\"103\",\"name\":\"橙色羊毛\",\"id\":\"wool\",\"damage\":\"1\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_orange\"},{\"order\":\"104\",\"name\":\"品红色羊毛\",\"id\":\"wool\",\"damage\":\"2\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_magenta\"},{\"order\":\"105\",\"name\":\"淡蓝色羊毛\",\"id\":\"wool\",\"damage\":\"3\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_light_blue\"},{\"order\":\"106\",\"name\":\"黄色羊毛\",\"id\":\"wool\",\"damage\":\"4\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_yellow\"},{\"order\":\"107\",\"name\":\"黄绿色羊毛\",\"id\":\"wool\",\"damage\":\"5\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_lime\"},{\"order\":\"108\",\"name\":\"粉红色羊毛\",\"id\":\"wool\",\"damage\":\"6\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_pink\"},{\"order\":\"109\",\"name\":\"灰色羊毛\",\"id\":\"wool\",\"damage\":\"7\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_gray\"},{\"order\":\"110\",\"name\":\"淡灰色羊毛\",\"id\":\"wool\",\"damage\":\"8\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_silver\"},{\"order\":\"111\",\"name\":\"青色羊毛\",\"id\":\"wool\",\"damage\":\"9\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_cyan\"},{\"order\":\"112\",\"name\":\"紫色羊毛\",\"id\":\"wool\",\"damage\":\"10\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_purple\"},{\"order\":\"113\",\"name\":\"蓝色羊毛\",\"id\":\"wool\",\"damage\":\"11\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_blue\"},{\"order\":\"114\",\"name\":\"棕色羊毛\",\"id\":\"wool\",\"damage\":\"12\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_brown\"},{\"order\":\"115\",\"name\":\"绿色羊毛\",\"id\":\"wool\",\"damage\":\"13\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_green\"},{\"order\":\"116\",\"name\":\"红色羊毛\",\"id\":\"wool\",\"damage\":\"14\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_red\"},{\"order\":\"117\",\"name\":\"黑色羊毛\",\"id\":\"wool\",\"damage\":\"15\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_black\"}]},{\"type\":\"混泥土\",\"order\":\"119\",\"image\":false,\"content\":[{\"order\":\"120\",\"name\":\"白色混凝土\",\"id\":\"concrete\",\"damage\":\"0\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_white\"},{\"order\":\"121\",\"name\":\"橙色混凝土\",\"id\":\"concrete\",\"damage\":\"1\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_orange\"},{\"order\":\"122\",\"name\":\"品红色混凝土\",\"id\":\"concrete\",\"damage\":\"2\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_magenta\"},{\"order\":\"123\",\"name\":\"淡蓝色混凝土\",\"id\":\"concrete\",\"damage\":\"3\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_light_blue\"},{\"order\":\"124\",\"name\":\"黄色混凝土\",\"id\":\"concrete\",\"damage\":\"4\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_yellow\"},{\"order\":\"125\",\"name\":\"黄绿色混凝土\",\"id\":\"concrete\",\"damage\":\"5\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_lime\"},{\"order\":\"126\",\"name\":\"粉红色混凝土\",\"id\":\"concrete\",\"damage\":\"6\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_pink\"},{\"order\":\"127\",\"name\":\"灰色混凝土\",\"id\":\"concrete\",\"damage\":\"7\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_gray\"},{\"order\":\"128\",\"name\":\"淡灰色混凝土\",\"id\":\"concrete\",\"damage\":\"8\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_silver\"},{\"order\":\"129\",\"name\":\"青色混凝土\",\"id\":\"concrete\",\"damage\":\"9\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_cyan\"},{\"order\":\"130\",\"name\":\"紫色混凝土\",\"id\":\"concrete\",\"damage\":\"10\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_purple\"},{\"order\":\"131\",\"name\":\"蓝色混凝土\",\"id\":\"concrete\",\"damage\":\"11\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_blue\"},{\"order\":\"132\",\"name\":\"棕色混凝土\",\"id\":\"concrete\",\"damage\":\"12\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_brown\"},{\"order\":\"133\",\"name\":\"绿色混凝土\",\"id\":\"concrete\",\"damage\":\"13\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_green\"},{\"order\":\"134\",\"name\":\"红色混凝土\",\"id\":\"concrete\",\"damage\":\"14\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_red\"},{\"order\":\"135\",\"name\":\"黑色混凝土\",\"id\":\"concrete\",\"damage\":\"15\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_black\"}]}]}]}");
+                        SaveShopdata();
+                        WriteLineERR("未找到配置文件", "已将默认配置文件写入到\n" + shopdataPath+"\n请自行修改！");
+                    }
                 }
                 catch (Exception) { SaveShopdata(); }
                 //偏好设定
@@ -358,9 +450,9 @@ namespace CSRDemo
                                                 SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.sellMain) { title = "点击选择你想要购买的物品", content = "", buttons = GetSell((JArray)selitem["content"]), domain = selitem["content"] });
                                             else
                                             {
-                                                WriteLine("test1--" + selitem.ToString(Newtonsoft.Json.Formatting.None));
+                                                //WriteLine("test1--" + selitem.ToString(Newtonsoft.Json.Formatting.None));
                                                 JObject pre = (JObject)preference[e.playername]["sell"];
-                                                WriteLine("test2--" + pre.ToString(Newtonsoft.Json.Formatting.None));
+                                                //WriteLine("test2--" + pre.ToString(Newtonsoft.Json.Formatting.None));
                                                 var content = new JObject { new JProperty("text", "\n您已选择 " + selitem.Value<string>("name") + "\n\n" + (pre.Value<int>("input_type") == 0 ? "拖动滑块选择购买数量" : "在文本框中输入购买数量") + "\n单价: " + selitem.Value<string>("price") + "\n      §l§5X" + (pre.Value<int>("input_type") == 0 ? "§r\n数量" : "")) };
                                                 if (pre.Value<int>("input_type") == 0)
                                                 {
@@ -380,7 +472,7 @@ namespace CSRDemo
                                             }
                                         }
                                     }
-                                    catch (Exception err) { WriteLine("sellMain ERROR\n" + err.ToString()); }
+                                    catch (Exception err) { WriteLineERR("sellMain", err.ToString()); }
                                     break;
                                 case FormTag.recycleMain:
                                     try
@@ -417,7 +509,7 @@ namespace CSRDemo
                                             }
                                         }
                                     }
-                                    catch (Exception err) { WriteLine("recycleMain ERROR\n" + err.ToString()); }
+                                    catch (Exception err) { WriteLineERR("recycleMain", err.ToString()); }
                                     break;
                                 case FormTag.confirmSell:
                                     try
@@ -439,7 +531,7 @@ namespace CSRDemo
                                         else
                                         { Feedback(e.playername, "数值无效！"); }
                                     }
-                                    catch (Exception err) { WriteLine("confirmSell ERROR\n" + err.ToString()); }
+                                    catch (Exception err) { WriteLineERR("confirmSell", err.ToString()); }
                                     break;
                                 case FormTag.confirmRecycle:
                                     try
@@ -459,7 +551,7 @@ namespace CSRDemo
                                         }
                                         else { Feedback(e.playername, "数值无效！"); }
                                     }
-                                    catch (Exception err) { WriteLine("confirmRecycle ERROR\n" + err.ToString()); }
+                                    catch (Exception err) { WriteLineERR("confirmRecycle", err.ToString()); }
                                     break;
                                 case FormTag.confirmedSell:
                                     try
@@ -487,7 +579,7 @@ namespace CSRDemo
                                             Feedback(e.playername, "购买已取消");
                                         }
                                     }
-                                    catch (Exception err) { WriteLine("confirmedSell ERROR\n" + err.ToString()); }
+                                    catch (Exception err) { WriteLineERR("confirmedSell", err.ToString()); }
                                     break;
                                 case FormTag.confirmedRecycle:
                                     try
@@ -503,54 +595,60 @@ namespace CSRDemo
                                             //WriteLine(uuid);
                                             //WriteLine(api.getPlayerItems(uuid));
                                             //WriteLine("-------TEST------");
-                                            //File.WriteAllText("plugins\\pfshop\\test.json", api.getPlayerItems(GetUUID(e.playername)));
-
-                                            //string getitems=
-                                            //JArray inventory = (JArray)JObject.Parse(api.getPlayerItems(GetUUID(e.playername)))["Inventory"]["tv"];
-                                            //File.WriteAllText("plugins\\pfshop\\test.json", inventory.ToString());
-                                            //WriteLine("a");
-                                            //int totalcount = 0;
-                                            //foreach (JObject slotbase in inventory)
-                                            //{
-                                            //    WriteLine("b");
-                                            //    WriteLine("b");
-                                            //    try
-                                            //    {
-                                            //        var slot = slotbase["tv"].ToList();
-                                            //        int name_i = slot.FindIndex(l => l["ck"].ToString() == "Name");
-                                            //        if (slot[name_i]["cv"]["tv"].ToString() == ("minecraft:" + item["id"]))
-                                            //        {
-                                            //            bool block_matched = true;
-                                            //            if (item["damage"].ToString() != "-1")
-                                            //            {
-                                            //                block_matched = Regex.IsMatch(slot.ToString(), item["regex"].ToString());
-                                            //            }
-                                            //            if (block_matched)
-                                            //            {
-                                            //                int count_i = slot.FindIndex(l => l["ck"].ToString() == "Count");
-                                            //                totalcount += int.Parse(slot[count_i]["cv"]["tv"].ToString());
-                                            //            }
-                                            //        }
-                                            //    }
-                                            //    catch (Exception) { }
-                                            //} 
-                                            //ExecuteCMD(e.playername, "titleraw @s times 5 25 10");
-                                            //if (totalcount >= count)
-                                            //{
-                                            //    ExecuteCMD(e.playername, $"clear @s {item["id"]} {item["damage"]} {count}");
-                                            //    ExecuteCMD(e.playername, "scoreboard players add @s money " + total);
-                                            //    ExecuteCMD(e.playername, "titleraw @s title {\"rawtext\":[{\"text\":\"\n\n\n§a回收成功\"}]}");
-                                            //    ExecuteCMD(e.playername, $"titleraw @s subtitle {{\"rawtext\":[{{\"text\":\"回收了 {count} 个 {item["name"]} 获得 {total} 像素币\"}}]}}");
-                                            //}
-                                            //else
-                                            //{
-                                            //    ExecuteCMD(e.playername, "titleraw @s title {\"rawtext\":[{\"text\":\"\n\n\n§c回收失败！\"}]}");
-                                            //    ExecuteCMD(e.playername, $"titleraw @s subtitle {{\"rawtext\":[{{\"text\":\"你背包里只有 {totalcount} 个 {item["name"]}\"}}]}}");
-                                            //}
+                                            //File.WriteAllText("plugins\\pfshop\\test.json", ); 
+                                            string getItemsRaw = api.getPlayerItems(GetUUID(e.playername));
+                                            if (string.IsNullOrEmpty(getItemsRaw))
+                                            {
+                                                WriteLineERR("API获取失败", "api.getPlayerItems尚不支持，请使用CSR商业版运行本插件");
+                                                Feedback(e.playername, "api.getPlayerItems尚不支持，请使用CSR商业版运行本插件");
+                                            }
+                                            else
+                                            {
+                                                JArray inventory = (JArray)JObject.Parse(api.getPlayerItems(GetUUID(e.playername)))["Inventory"]["tv"];
+#if DEBUG
+                                                File.WriteAllText("plugins\\pfshop\\test.json", inventory.ToString());
+#endif
+                                                int totalcount = 0;
+                                                foreach (JObject slotbase in inventory)
+                                                {
+                                                    try
+                                                    {
+                                                        var slot = slotbase["tv"].ToList();
+                                                        int name_i = slot.FindIndex(l => l["ck"].ToString() == "Name");
+                                                        if (slot[name_i]["cv"]["tv"].ToString() == ("minecraft:" + item["id"]))
+                                                        {
+                                                            bool block_matched = true;
+                                                            if (item["damage"].ToString() != "-1")
+                                                            {
+                                                                block_matched = Regex.IsMatch(slot.ToString(), item["regex"].ToString());
+                                                            }
+                                                            if (block_matched)
+                                                            {
+                                                                int count_i = slot.FindIndex(l => l["ck"].ToString() == "Count");
+                                                                totalcount += int.Parse(slot[count_i]["cv"]["tv"].ToString());
+                                                            }
+                                                        }
+                                                    }
+                                                    catch (Exception) { }
+                                                }
+                                                ExecuteCMD(e.playername, "titleraw @s times 5 25 10");
+                                                if (totalcount >= count)
+                                                {
+                                                    ExecuteCMD(e.playername, $"clear @s {item["id"]} {item["damage"]} {count}");
+                                                    ExecuteCMD(e.playername, "scoreboard players add @s money " + total);
+                                                    ExecuteCMD(e.playername, "titleraw @s title {\"rawtext\":[{\"text\":\"\n\n\n§a回收成功\"}]}");
+                                                    ExecuteCMD(e.playername, $"titleraw @s subtitle {{\"rawtext\":[{{\"text\":\"回收了 {count} 个 {item["name"]} 获得 {total} 像素币\"}}]}}");
+                                                }
+                                                else
+                                                {
+                                                    ExecuteCMD(e.playername, "titleraw @s title {\"rawtext\":[{\"text\":\"\n\n\n§c回收失败！\"}]}");
+                                                    ExecuteCMD(e.playername, $"titleraw @s subtitle {{\"rawtext\":[{{\"text\":\"你背包里只有 {totalcount} 个 {item["name"]}\"}}]}}");
+                                                }
+                                            }
                                         }
                                         else { Feedback(e.playername, "回收已取消"); }
                                     }
-                                    catch (Exception err) { WriteLine("confirmedRecycle ERROR\n" + err.ToString()); }
+                                    catch (Exception err) { WriteLineERR("confirmedRecycle", err.ToString()); }
                                     break;
                                 case FormTag.preferenceMain:
                                     try
@@ -566,7 +664,7 @@ namespace CSRDemo
                                         SavePreference();
                                         Feedback(e.playername, "个人设置保存成功");
                                     }
-                                    catch (Exception err) { WriteLine("preferenceMain ERROR\n" + err.ToString()); }
+                                    catch (Exception err) { WriteLineERR("preferenceMain", err.ToString()); }
                                     break;
                                 default:
                                     break;
@@ -575,7 +673,7 @@ namespace CSRDemo
                     }
                     catch (Exception err)
                     {
-                        WriteLine("出错>位于onFormSelect\n" + err.Message);
+                        WriteLineERR("EVENT-onFormSelect", err.Message);
                     }
                     return false;
                 });
@@ -598,7 +696,7 @@ namespace CSRDemo
                             }
                         }
                     }
-                    catch (Exception err) { WriteLine("出错>位于onServerCmd\n" + err.Message); }
+                    catch (Exception err) { WriteLineERR("EVENT-onServerCmd", err.Message); }
                     return true;
                 });
                 #endregion
@@ -630,7 +728,7 @@ namespace CSRDemo
                             //Console.WriteLine(" <{0}> {1}", e.playername, e.cmd);
                         }
                     }
-                    catch (Exception err) { WriteLine("出错>位于onInputCommand\n" + err.Message); }
+                    catch (Exception err) { WriteLineERR("EVENT-onInputCommand", err.Message); }
                     return true;
                 });
                 #endregion
@@ -931,7 +1029,7 @@ namespace CSRDemo
             }
             catch (Exception err)
             {
-                WriteLine("插件遇到严重错误，无法继续运行\n错误信息:" + err.Message);
+                WriteLineERR("插件遇到严重错误，无法继续运行", err.Message);
             }
         }
     }
@@ -950,7 +1048,7 @@ namespace CSR
             try
             {
                 // TODO 此接口为必要实现
-                CSRDemo.Program.init(api);
+                PFShop.Program.init(api);
             }
             catch (Exception err)
             { Console.WriteLine(err.ToString()); }

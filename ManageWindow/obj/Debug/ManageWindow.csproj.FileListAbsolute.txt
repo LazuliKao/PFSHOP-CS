@@ -51,3 +51,6 @@ C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\bin\Debug\ru-ru\MaterialDesig
 C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\bin\Debug\uz-Latn-UZ\MaterialDesignExtensions.resources.dll
 C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\obj\Debug\Pages\GeneralSetting.g.cs
 C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\obj\Debug\Pages\GeneralSetting.baml
+C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\bin\Debug\Ookii.Dialogs.Wpf.dll
+C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\bin\Debug\Ookii.Dialogs.Wpf.pdb
+C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\bin\Debug\Ookii.Dialogs.Wpf.xml
