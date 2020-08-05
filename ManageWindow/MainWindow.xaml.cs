@@ -44,7 +44,9 @@ namespace ManageWindow
             }
             Console.Write($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} ");
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("PFSHOP]");
+            Console.Write("PFSHOP");
+            Console.ForegroundColor = defaultForegroundColor;
+            Console.Write("]");
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.Write("[WPF] ");
             Console.ForegroundColor = ConsoleColor.Green;

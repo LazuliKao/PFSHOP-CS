@@ -87,10 +87,17 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Pages\ShopEdit.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Pages\GeneralSetting.xaml.cs">
       <DependentUpon>GeneralSetting.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\ShopEdit.xaml.cs">
+      <DependentUpon>ShopEdit.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

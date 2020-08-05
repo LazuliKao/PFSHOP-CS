@@ -26,7 +26,9 @@ namespace PFShop
         {
             Console.Write($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} ");
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("PFSHOP]");
+            Console.Write("PFSHOP");
+            Console.ForegroundColor = defaultForegroundColor;
+            Console.Write("]");
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.Write("[Main] ");
             ResetConsoleColor();
@@ -36,7 +38,9 @@ namespace PFShop
         {
             Console.Write($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} ");
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("PFSHOP]");
+            Console.Write("PFSHOP");  
+            Console.ForegroundColor = defaultForegroundColor;
+            Console.Write("]");
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("[ERROR] ");
             Console.BackgroundColor = ConsoleColor.DarkRed;
@@ -67,7 +71,7 @@ namespace PFShop
         //} 
         //private static Task windowTask = null;
         private static Thread windowthread = null;
-        private static AutoResetEvent autoResetEvent = new AutoResetEvent(false);
+        private static ManualResetEvent manualResetEvent = null;
         private static bool windowOpened = false;
         private static void ShowSettingWindow()
         {
@@ -88,8 +92,16 @@ namespace PFShop
                                     new MainWindow().ShowDialog();
                                     GC.Collect();
                                     windowOpened = false;
-                                    autoResetEvent.WaitOne();
-                                    autoResetEvent.Reset();
+                                    manualResetEvent = new ManualResetEvent(false);
+#if DEBUG
+                                    WriteLine("窗体线程manualResetEvent返回:" +
+#endif
+                                    manualResetEvent.WaitOne()
+#if DEBUG
+                                    )
+#endif
+                                    ;
+                                    manualResetEvent.Reset();
                                 }
                                 catch (Exception err) { WriteLine("窗体执行过程中发生错误\n信息" + err.ToString()); }
                             }
@@ -100,7 +112,7 @@ namespace PFShop
                     windowthread.Start();
                 }
                 else
-                { if (windowOpened) WriteLine("窗体已经打开"); else autoResetEvent.Set(); }
+                { if (windowOpened) WriteLine("窗体已经打开"); else manualResetEvent.Set(); }
             }
             catch (Exception
 #if DEBUG

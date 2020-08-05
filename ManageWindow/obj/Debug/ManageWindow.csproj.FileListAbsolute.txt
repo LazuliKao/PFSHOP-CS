@@ -54,3 +54,5 @@ C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\obj\Debug\Pages\GeneralSettin
 C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\bin\Debug\Ookii.Dialogs.Wpf.dll
 C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\bin\Debug\Ookii.Dialogs.Wpf.pdb
 C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\bin\Debug\Ookii.Dialogs.Wpf.xml
+C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\obj\Debug\Pages\ShopEdit.g.cs
+C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\obj\Debug\Pages\ShopEdit.baml
