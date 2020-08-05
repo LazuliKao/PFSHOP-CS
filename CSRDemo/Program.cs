@@ -14,6 +14,7 @@ using static PFShop.FormINFO;
 using System.Collections;
 using Ookii.Dialogs.Wpf;
 using System.Diagnostics;
+using System.Net.Sockets;
 //using PFShop;
 
 namespace PFShop
@@ -23,19 +24,27 @@ namespace PFShop
         private static MCCSAPI api = null;
         public static void WriteLine(object content)
         {
-            Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} PFSHOP] {content}");
+            Console.Write($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("PFSHOP]");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write("[Main] ");
+            ResetConsoleColor();
+            Console.WriteLine(content);
         }
         public static void WriteLineERR(object type, object content)
         {
-            Console.Write($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} PFSHOP]");
+            Console.Write($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("PFSHOP]");
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write("[ERROR]");
+            Console.Write("[ERROR] ");
             Console.BackgroundColor = ConsoleColor.DarkRed;
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write($">{type}<");
             ResetConsoleColor();
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"{content}");
+            Console.WriteLine(content);
             ResetConsoleColor();
         }
         //public static Task<T> StartSTATask<T>(Func<T> func)
@@ -244,6 +253,8 @@ namespace PFShop
         #endregion
         #endregion
         #region 配置
+        ////插件设置
+        //public static
         //商店信息
         public static JObject shopdata = new JObject();
         public static string shopdataPath = Path.GetFullPath("plugins\\pfshop\\shopdata.json");
@@ -260,6 +271,8 @@ namespace PFShop
             Console.ForegroundColor = defaultForegroundColor;
             Console.BackgroundColor = defaultBackgroundColor;
         }
+        //语言文件
+        private static Language lang = new Language();
         public static void init(MCCSAPI base_api)
         {
             _ = Task.Run(() =>
@@ -269,7 +282,6 @@ namespace PFShop
             });
             try
             {
-
                 #region 加载
                 api = base_api;
                 Console.OutputEncoding = Encoding.UTF8;
@@ -297,9 +309,21 @@ namespace PFShop
                     Console.WriteLine(input);
                 }
                 ResetConsoleColor();
-                #endregion 
-#if !DEBUG 
-                #region EULA
+                #endregion
+                #region 读取配置
+                //语言文件
+                try
+                {
+                    string languagePath = Path.GetFullPath("plugins\\pfshop\\lang.json");
+                    //JObject language = new JObject();
+                    if (!Directory.Exists(Path.GetDirectoryName(shopdataPath))) Directory.CreateDirectory(Path.GetDirectoryName(shopdataPath));
+                    if (File.Exists(languagePath)) { lang = JObject.Parse(File.ReadAllText(languagePath)).ToObject<Language>(); }
+                    else { WriteLineERR(lang.CantFindLanguage, string.Format(lang.SaveDefaultLanguageTo, languagePath)); }
+                    File.WriteAllText(languagePath, JObject.FromObject(lang).ToString());
+                }
+                catch (Exception err) { WriteLineERR("Lang", string.Format(lang.LanguageFileLoadFailed, err.ToString())); }
+#if !DEBUG
+                #region EULA 
                 if (!Directory.Exists(Path.GetDirectoryName(shopdataPath))) Directory.CreateDirectory(Path.GetDirectoryName(shopdataPath));
                 string eulaPath = Path.GetDirectoryName(shopdataPath) + "\\EULA";
                 string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
@@ -332,7 +356,7 @@ namespace PFShop
                         dialog.HyperlinkClicked += new EventHandler<HyperlinkClickedEventArgs>((sender, e) => { Process.Start("https://github.com/littlegao233/PFShop-CS"); });
                         dialog.FooterIcon = TaskDialogIcon.Information;
                         dialog.EnableHyperlinks = true;
-                        TaskDialogButton acceptButton = new TaskDialogButton("接受");
+                        TaskDialogButton acceptButton = new TaskDialogButton("Accept");
                         dialog.Buttons.Add(acceptButton);
                         TaskDialogButton refuseButton = new TaskDialogButton("拒绝并关闭本插件");
                         dialog.Buttons.Add(refuseButton);
@@ -343,7 +367,6 @@ namespace PFShop
                 }
                 #endregion
 #endif
-                #region 读取配置
                 //商店信息
                 try
                 {
@@ -351,9 +374,9 @@ namespace PFShop
                     if (File.Exists(shopdataPath)) shopdata = JObject.Parse(File.ReadAllText(shopdataPath));
                     else
                     {
-                        shopdata = JObject.Parse("{\"recycle\":[{\"type\":\"基础方块\",\"order\":\"1\",\"image\":\"textures/blocks/grass_side_carried\",\"content\":[{\"order\":\"2\",\"name\":\"泥土\",\"id\":\"dirt\",\"damage\":\"-1\",\"regex\":\"\",\"award\":1,\"image\":\"textures/blocks/dirt\"},{\"order\":\"3\",\"name\":\"木头\",\"id\":\"log\",\"damage\":\"-1\",\"regex\":\"\",\"award\":3,\"image\":\"textures/blocks/log_oak\"},{\"order\":\"4\",\"name\":\"圆石\",\"id\":\"cobblestone\",\"damage\":\"-1\",\"regex\":\"\",\"award\":2,\"image\":\"textures/blocks/cobblestone\"}]},{\"type\":\"各类矿物\",\"order\":\"30\",\"image\":false,\"content\":[{\"order\":\"31\",\"name\":\"煤炭\",\"id\":\"coal\",\"damage\":\"-1\",\"regex\":\"\",\"award\":10,\"image\":\"textures/items/coal\"},{\"order\":\"32\",\"name\":\"铁锭\",\"id\":\"iron_ingot\",\"damage\":\"-1\",\"regex\":\"\",\"award\":50,\"image\":\"textures/items/iron_ingot\"},{\"order\":\"33\",\"name\":\"金锭\",\"id\":\"gold_ingot\",\"damage\":\"-1\",\"regex\":\"\",\"award\":100,\"image\":\"textures/items/gold_ingot\"},{\"order\":\"34\",\"name\":\"青金石\",\"id\":\"dye\",\"damage\":\"4\",\"regex\":\"\\\\{\\\"ck\\\":\\\"Damage\\\",\\\"cv\\\":\\\\{\\\"tt\\\":2,\\\"tv\\\":4\\\\}\\\\}\",\"award\":80,\"image\":\"textures/items/dye_powder_blue\"},{\"order\":\"35\",\"name\":\"红石\",\"id\":\"redstone\",\"damage\":\"-1\",\"regex\":\"\",\"award\":20,\"image\":\"textures/items/redstone_dust\"},{\"order\":\"36\",\"name\":\"钻石\",\"id\":\"diamond\",\"damage\":\"-1\",\"regex\":\"\",\"award\":200,\"image\":\"textures/items/diamond\"},{\"order\":\"37\",\"name\":\"绿宝石\",\"id\":\"emerald\",\"damage\":\"-1\",\"regex\":\"\",\"award\":60,\"image\":\"textures/items/emerald\"}]},{\"type\":\"杂物/生活用品\",\"order\":\"46\",\"image\":false,\"content\":[{\"order\":\"47\",\"name\":\"马鞍\",\"id\":\"saddle\",\"damage\":\"-1\",\"regex\":\"\",\"award\":300,\"image\":\"textures/items/saddle\"},{\"order\":\"48\",\"name\":\"末影珍珠\",\"id\":\"ender_pearl\",\"damage\":\"-1\",\"regex\":\"\",\"award\":200,\"image\":\"textures/items/ender_pearl\"}]}],\"sell\":[{\"type\":\"基础方块\",\"order\":\"1\",\"image\":\"textures/blocks/grass_side_carried\",\"content\":[{\"order\":\"2\",\"name\":\"泥土\",\"id\":\"dirt\",\"damage\":\"0\",\"price\":\"2.00\",\"image\":\"textures/blocks/dirt\"},{\"type\":\"各种木头\",\"order\":\"18\",\"image\":\"textures/blocks/log_oak\",\"content\":[{\"order\":\"20\",\"name\":\"橡木原木\",\"id\":\"log\",\"damage\":\"1\",\"price\":\"5.00\",\"image\":\"textures/blocks/log_oak\"},{\"order\":\"21\",\"name\":\"云杉原木\",\"id\":\"log\",\"damage\":\"2\",\"price\":\"7.00\",\"image\":\"textures/blocks/log_spruce\"},{\"order\":\"22\",\"name\":\"白桦原木\",\"id\":\"log\",\"damage\":\"3\",\"price\":\"6.00\",\"image\":\"textures/blocks/log_birch\"},{\"order\":\"23\",\"name\":\"丛林原木\",\"id\":\"log\",\"damage\":\"4\",\"price\":\"8.00\",\"image\":\"textures/blocks/log_jungle\"},{\"order\":\"24\",\"name\":\"金合欢原木\",\"id\":\"log2\",\"damage\":\"1\",\"price\":\"9.00\",\"image\":\"textures/blocks/log_acacia\"},{\"order\":\"25\",\"name\":\"深色橡木原木\",\"id\":\"log2\",\"damage\":\"2\",\"price\":\"7.50\",\"image\":\"textures/blocks/log_big_oak\"}]},{\"order\":\"47\",\"name\":\"马鞍\",\"id\":\"saddle\",\"damage\":\"0\",\"price\":\"500.00\",\"image\":\"textures/items/saddle\"},{\"order\":\"48\",\"name\":\"末影珍珠\",\"id\":\"ender_pearl\",\"damage\":\"0\",\"price\":\"1000.00\",\"image\":\"textures/items/ender_pearl\"},{\"order\":\"49\",\"name\":\"海洋之心\",\"id\":\"heart_of_the_sea\",\"damage\":\"0\",\"price\":\"6666.67\",\"image\":\"textures/items/heartofthesea_closed\"}]},{\"type\":\"建筑党专用\",\"order\":\"81\",\"image\":\"textures/blocks/brick\",\"content\":[{\"type\":\"陶土类\",\"order\":\"82\",\"image\":false,\"content\":[{\"order\":\"83\",\"name\":\"白色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"0\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_white\"},{\"order\":\"84\",\"name\":\"橙色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"1\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_orange\"},{\"order\":\"85\",\"name\":\"品红色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"2\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_magenta\"},{\"order\":\"86\",\"name\":\"淡蓝色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"3\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_light_blue\"},{\"order\":\"87\",\"name\":\"黄色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"4\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_yellow\"},{\"order\":\"88\",\"name\":\"黄绿色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"5\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_lime\"},{\"order\":\"89\",\"name\":\"粉红色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"6\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_pink\"},{\"order\":\"90\",\"name\":\"灰色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"7\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_gray\"},{\"order\":\"91\",\"name\":\"淡灰色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"8\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_silver\"},{\"order\":\"92\",\"name\":\"青色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"9\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_cyan\"},{\"order\":\"93\",\"name\":\"紫色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"10\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_purple\"},{\"order\":\"94\",\"name\":\"蓝色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"11\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_blue\"},{\"order\":\"95\",\"name\":\"棕色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"12\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_brown\"},{\"order\":\"96\",\"name\":\"绿色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"13\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_green\"},{\"order\":\"97\",\"name\":\"红色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"14\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_red\"},{\"order\":\"98\",\"name\":\"黑色陶瓦\",\"id\":\"stained_hardened_clay\",\"damage\":\"15\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay_stained_black\"},{\"order\":\"99\",\"name\":\"陶瓦\",\"id\":\"\\r\\nhardened_clay\",\"damage\":\"0\",\"price\":\"3.00\",\"image\":\"textures/blocks/hardened_clay\"}]},{\"type\":\"羊毛类\",\"order\":\"101\",\"image\":false,\"content\":[{\"order\":\"102\",\"name\":\"白色羊毛\",\"id\":\"wool\",\"damage\":\"0\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_white\"},{\"order\":\"103\",\"name\":\"橙色羊毛\",\"id\":\"wool\",\"damage\":\"1\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_orange\"},{\"order\":\"104\",\"name\":\"品红色羊毛\",\"id\":\"wool\",\"damage\":\"2\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_magenta\"},{\"order\":\"105\",\"name\":\"淡蓝色羊毛\",\"id\":\"wool\",\"damage\":\"3\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_light_blue\"},{\"order\":\"106\",\"name\":\"黄色羊毛\",\"id\":\"wool\",\"damage\":\"4\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_yellow\"},{\"order\":\"107\",\"name\":\"黄绿色羊毛\",\"id\":\"wool\",\"damage\":\"5\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_lime\"},{\"order\":\"108\",\"name\":\"粉红色羊毛\",\"id\":\"wool\",\"damage\":\"6\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_pink\"},{\"order\":\"109\",\"name\":\"灰色羊毛\",\"id\":\"wool\",\"damage\":\"7\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_gray\"},{\"order\":\"110\",\"name\":\"淡灰色羊毛\",\"id\":\"wool\",\"damage\":\"8\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_silver\"},{\"order\":\"111\",\"name\":\"青色羊毛\",\"id\":\"wool\",\"damage\":\"9\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_cyan\"},{\"order\":\"112\",\"name\":\"紫色羊毛\",\"id\":\"wool\",\"damage\":\"10\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_purple\"},{\"order\":\"113\",\"name\":\"蓝色羊毛\",\"id\":\"wool\",\"damage\":\"11\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_blue\"},{\"order\":\"114\",\"name\":\"棕色羊毛\",\"id\":\"wool\",\"damage\":\"12\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_brown\"},{\"order\":\"115\",\"name\":\"绿色羊毛\",\"id\":\"wool\",\"damage\":\"13\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_green\"},{\"order\":\"116\",\"name\":\"红色羊毛\",\"id\":\"wool\",\"damage\":\"14\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_red\"},{\"order\":\"117\",\"name\":\"黑色羊毛\",\"id\":\"wool\",\"damage\":\"15\",\"price\":\"3.00\",\"image\":\"textures/blocks/wool_colored_black\"}]},{\"type\":\"混泥土\",\"order\":\"119\",\"image\":false,\"content\":[{\"order\":\"120\",\"name\":\"白色混凝土\",\"id\":\"concrete\",\"damage\":\"0\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_white\"},{\"order\":\"121\",\"name\":\"橙色混凝土\",\"id\":\"concrete\",\"damage\":\"1\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_orange\"},{\"order\":\"122\",\"name\":\"品红色混凝土\",\"id\":\"concrete\",\"damage\":\"2\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_magenta\"},{\"order\":\"123\",\"name\":\"淡蓝色混凝土\",\"id\":\"concrete\",\"damage\":\"3\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_light_blue\"},{\"order\":\"124\",\"name\":\"黄色混凝土\",\"id\":\"concrete\",\"damage\":\"4\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_yellow\"},{\"order\":\"125\",\"name\":\"黄绿色混凝土\",\"id\":\"concrete\",\"damage\":\"5\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_lime\"},{\"order\":\"126\",\"name\":\"粉红色混凝土\",\"id\":\"concrete\",\"damage\":\"6\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_pink\"},{\"order\":\"127\",\"name\":\"灰色混凝土\",\"id\":\"concrete\",\"damage\":\"7\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_gray\"},{\"order\":\"128\",\"name\":\"淡灰色混凝土\",\"id\":\"concrete\",\"damage\":\"8\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_silver\"},{\"order\":\"129\",\"name\":\"青色混凝土\",\"id\":\"concrete\",\"damage\":\"9\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_cyan\"},{\"order\":\"130\",\"name\":\"紫色混凝土\",\"id\":\"concrete\",\"damage\":\"10\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_purple\"},{\"order\":\"131\",\"name\":\"蓝色混凝土\",\"id\":\"concrete\",\"damage\":\"11\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_blue\"},{\"order\":\"132\",\"name\":\"棕色混凝土\",\"id\":\"concrete\",\"damage\":\"12\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_brown\"},{\"order\":\"133\",\"name\":\"绿色混凝土\",\"id\":\"concrete\",\"damage\":\"13\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_green\"},{\"order\":\"134\",\"name\":\"红色混凝土\",\"id\":\"concrete\",\"damage\":\"14\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_red\"},{\"order\":\"135\",\"name\":\"黑色混凝土\",\"id\":\"concrete\",\"damage\":\"15\",\"price\":\"3.00\",\"image\":\"textures/blocks/concrete_black\"}]}]}]}");
+                        shopdata = JObject.Parse(lang.DefaultShopData);
                         SaveShopdata();
-                        WriteLineERR("未找到配置文件", "已将默认配置文件写入到\n" + shopdataPath+"\n请自行修改！");
+                        WriteLineERR(lang.CantFindConfig, string.Format(lang.SaveDefaultConfigTo, shopdataPath));
                     }
                 }
                 catch (Exception) { SaveShopdata(); }
@@ -380,12 +403,12 @@ namespace PFShop
                         {
                             if (receForm.Tag == FormTag.recycleMain || receForm.Tag == FormTag.sellMain || receForm.Tag == FormTag.preferenceMain)
                                 SendMain(e.playername);
-                            else if (receForm.Tag == FormTag.confirmSell)
-                                SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.sellMain) { title = "点击选择你想要购买的物品", content = "", buttons = GetSell((JArray)receForm.domain_source), domain = receForm.domain.Parent.Parent.Parent });
-                            else if (receForm.Tag == FormTag.confirmRecycle)
-                                SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.recycleMain) { title = "点击选择你想要回收的物品", content = "", buttons = GetRecycle((JArray)receForm.domain_source), domain = receForm.domain.Parent.Parent.Parent });
+                            else if (receForm.Tag == FormTag.InputSellDetail)
+                                SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.sellMain) { title = lang.sellMainTitle, content = lang.sellMainContent, buttons = GetSell((JArray)receForm.domain_source), domain = receForm.domain.Parent.Parent.Parent });
+                            else if (receForm.Tag == FormTag.InputRecycleDetail)
+                                SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.recycleMain) { title = lang.recycleMainTitle, content = lang.recycleMainContent, buttons = GetRecycle((JArray)receForm.domain_source), domain = receForm.domain.Parent.Parent.Parent });
                             else
-                                Feedback(e.playername, "§7表单已关闭，未收到操作");
+                                Feedback(e.playername, lang.ClosedFormWithoutAction);
                         }
                         else
                         {
@@ -393,41 +416,41 @@ namespace PFShop
                             {
                                 case FormTag.Main:
                                     if (e.selected == "0")
-                                        SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.sellMain) { title = "购买", content = "点击购买", buttons = GetSell(shopdata["sell"] as JArray), domain = shopdata["sell"] });
+                                        SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.sellMain) { title = lang.sellMainTitle, content = lang.sellMainContent, buttons = GetSell(shopdata["sell"] as JArray), domain = shopdata["sell"] });
                                     else if (e.selected == "1")
-                                        SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.recycleMain) { title = "回收站", content = "点击选择你想要回收的物品", buttons = GetRecycle(shopdata["recycle"] as JArray), domain = shopdata["recycle"] });
+                                        SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.recycleMain) { title = lang.recycleMainTitle, content = lang.recycleMainContent, buttons = GetRecycle(shopdata["recycle"] as JArray), domain = shopdata["recycle"] });
                                     else if (e.selected == "2")
                                     {
                                         var sizelist = new JArray() { "8", "16", "32", "64", "128", "256" };
                                         SendForm(new FormINFO(e.playername, FormType.Custom, FormTag.preferenceMain)
                                         {
-                                            title = "个人偏好设置",
+                                            title = lang.preferenceMainTitle,
                                             content = new JArray
                                         {
                                             new JObject
                                             {
                                                 new JProperty("type","step_slider"),
-                                                new JProperty("text","●出售商店\n    数量输入方式"),
-                                                new JProperty("steps",new JArray{ "游标滑块","文本框手动输入"}),
+                                                new JProperty("text", lang.preferenceMainSellText),
+                                                new JProperty("steps",new JArray{ lang.preferenceMainUsingSlider, lang.preferenceMainUsingTextbox}),
                                                 new JProperty("default",preference[e.playername]["sell"].Value<int>("input_type"))
                                             },
                                             new JObject
                                             {
                                                 new JProperty("type","dropdown"),
-                                                new JProperty("text","    使用游标滑块输入时的最大值"),
+                                                new JProperty("text",lang.preferenceMainMaxValueTip),
                                                 new JProperty("options", sizelist),
                                                 new JProperty("default",preference[e.playername]["sell"].Value<int>("slide_size_i"))
                                             }  ,     new JObject
                                             {
                                                 new JProperty("type","step_slider"),
-                                                new JProperty("text","●回收商店\n    数量输入方式"),
-                                                new JProperty("steps",new JArray{ "游标滑块","文本框手动输入"}),
+                                                new JProperty("text",lang.preferenceMainRecycleText),
+                                                new JProperty("steps",new JArray{ lang.preferenceMainUsingSlider, lang.preferenceMainUsingTextbox}),
                                                 new JProperty("default",preference[e.playername]["recycle"].Value<int>("input_type"))
                                             },
                                             new JObject
                                             {
                                                 new JProperty("type","dropdown"),
-                                                new JProperty("text","    使用游标滑块输入时的最大值"),
+                                                new JProperty("text",lang.preferenceMainMaxValueTip),
                                                 new JProperty("options",sizelist),
                                                 new JProperty("default",preference[e.playername]["recycle"].Value<int>("slide_size_i"))
                                             }
@@ -441,21 +464,22 @@ namespace PFShop
                                         if (e.selected == "0")
                                         {
                                             if (receForm.domain.Path == "sell") SendMain(e.playername);
-                                            else SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.sellMain) { title = "点击选择你想要购买的物品", content = "", buttons = GetSell((JArray)receForm.domain.Parent.Parent.Parent), domain = receForm.domain.Parent.Parent.Parent });
+                                            else SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.sellMain) { title = lang.sellMainTitle, content = lang.sellMainContent, buttons = GetSell((JArray)receForm.domain.Parent.Parent.Parent), domain = receForm.domain.Parent.Parent.Parent });
                                         }
                                         else
                                         {
                                             JObject selitem = (JObject)receForm.domain[int.Parse(e.selected) - 1];
                                             if (selitem.ContainsKey("type"))
-                                                SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.sellMain) { title = "点击选择你想要购买的物品", content = "", buttons = GetSell((JArray)selitem["content"]), domain = selitem["content"] });
+                                                SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.sellMain) { title = lang.sellMainTitle, content = lang.sellMainContent, buttons = GetSell((JArray)selitem["content"]), domain = selitem["content"] });
                                             else
                                             {
                                                 //WriteLine("test1--" + selitem.ToString(Newtonsoft.Json.Formatting.None));
                                                 JObject pre = (JObject)preference[e.playername]["sell"];
                                                 //WriteLine("test2--" + pre.ToString(Newtonsoft.Json.Formatting.None));
-                                                var content = new JObject { new JProperty("text", "\n您已选择 " + selitem.Value<string>("name") + "\n\n" + (pre.Value<int>("input_type") == 0 ? "拖动滑块选择购买数量" : "在文本框中输入购买数量") + "\n单价: " + selitem.Value<string>("price") + "\n      §l§5X" + (pre.Value<int>("input_type") == 0 ? "§r\n数量" : "")) };
+                                                var content = new JObject();
                                                 if (pre.Value<int>("input_type") == 0)
                                                 {
+                                                    content.Add("text", string.Format(lang.InputSellDetailContentWhenUseSlider, selitem.Value<string>("name"), selitem.Value<string>("price")));
                                                     content.Add("type", "slider");
                                                     content.Add("min", 1);
                                                     content.Add("max", pre.Value<int>("slide_size"));
@@ -464,11 +488,12 @@ namespace PFShop
                                                 }
                                                 else
                                                 {
+                                                    content.Add("text", string.Format(lang.InputSellDetailContentWhenUseTextbox, selitem.Value<string>("name"), selitem.Value<string>("price")));
                                                     content.Add("type", "input");
                                                     content.Add("default", "");
-                                                    content.Add("placeholder", "购买数量");
+                                                    content.Add("placeholder", lang.InputSellDetailContentTextboxPlaceholder);
                                                 }
-                                                SendForm(new FormINFO(e.playername, FormType.Custom, FormTag.confirmSell) { title = "输入购买数量", content = new JArray { content }, domain = selitem });
+                                                SendForm(new FormINFO(e.playername, FormType.Custom, FormTag.InputSellDetail) { title = lang.InputSellDetailTitle, content = new JArray { content }, domain = selitem });
                                             }
                                         }
                                     }
@@ -480,19 +505,20 @@ namespace PFShop
                                         if (e.selected == "0")
                                         {
                                             if (receForm.domain.Path == "recycle") SendMain(e.playername);
-                                            else SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.recycleMain) { title = "点击选择你想要回收的物品", content = "", buttons = GetRecycle((JArray)receForm.domain.Parent.Parent.Parent), domain = receForm.domain.Parent.Parent.Parent });
+                                            else SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.recycleMain) { title = lang.recycleMainTitle, content = lang.recycleMainContent, buttons = GetRecycle((JArray)receForm.domain.Parent.Parent.Parent), domain = receForm.domain.Parent.Parent.Parent });
                                         }
                                         else
                                         {
                                             JObject selitem = (JObject)receForm.domain[int.Parse(e.selected) - 1];
                                             if (selitem.ContainsKey("type"))
-                                                SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.recycleMain) { title = "点击选择你想要回收的物品", content = "", buttons = GetRecycle((JArray)selitem["content"]), domain = selitem["content"] });
+                                                SendForm(new FormINFO(e.playername, FormType.SimpleIMG, FormTag.recycleMain) { title = lang.recycleMainTitle, content = lang.recycleMainContent, buttons = GetRecycle((JArray)selitem["content"]), domain = selitem["content"] });
                                             else
                                             {
                                                 JObject pre = (JObject)preference[e.playername]["recycle"];
-                                                var content = new JObject { new JProperty("text", "\n您已选择 " + selitem.Value<string>("name") + "\n\n" + (pre.Value<int>("input_type") == 0 ? "拖动滑块选择回收数量" : "在文本框中输入回收数量") + "\n单个收益: " + selitem.Value<string>("price") + "\n          §l§5X§r" + (pre.Value<int>("input_type") == 0 ? "§r\n 数  量 " : "")) };
+                                                var content = new JObject();
                                                 if (pre.Value<int>("input_type") == 0)
                                                 {
+                                                    content.Add("text", string.Format(lang.InputRecycleDetailContentWhenUseSlider, selitem.Value<string>("name"), selitem.Value<string>("award")));
                                                     content.Add("type", "slider");
                                                     content.Add("min", 1);
                                                     content.Add("max", pre.Value<int>("slide_size"));
@@ -501,17 +527,18 @@ namespace PFShop
                                                 }
                                                 else
                                                 {
+                                                    content.Add("text", string.Format(lang.InputRecycleDetailContentWhenUseTextbox, selitem.Value<string>("name"), selitem.Value<string>("award")));
                                                     content.Add("type", "input");
                                                     content.Add("default", "");
-                                                    content.Add("placeholder", "回收数量");
+                                                    content.Add("placeholder", lang.InputRecycleDetailContentTextboxPlaceholder);
                                                 }
-                                                SendForm(new FormINFO(e.playername, FormType.Custom, FormTag.confirmRecycle) { title = "输入回收数量", content = new JArray { content }, domain = selitem });
+                                                SendForm(new FormINFO(e.playername, FormType.Custom, FormTag.InputRecycleDetail) { title = lang.InputRecycleDetailTitle, content = new JArray { content }, domain = selitem });
                                             }
                                         }
                                     }
                                     catch (Exception err) { WriteLineERR("recycleMain", err.ToString()); }
                                     break;
-                                case FormTag.confirmSell:
+                                case FormTag.InputSellDetail:
                                     try
                                     {
                                         //receForm.domain;//选择项 
@@ -521,19 +548,19 @@ namespace PFShop
                                         {
                                             SendForm(new FormINFO(e.playername, FormType.Model, FormTag.confirmedSell)
                                             {
-                                                title = "确认购买",
-                                                content = $"购买信息:\n  名称: {receForm.domain.Value<string>("name")}\n  数量: {count}\n  总价: {total}\n\n点击确认即可发送购买请求",
-                                                buttons = new JArray { "确认购买", "我再想想" },
+                                                title = lang.confirmSellTitle,
+                                                content = string.Format(lang.confirmSellContent, receForm.domain.Value<string>("name"), count, total),
+                                                buttons = new JArray { lang.confirmSellAccept, lang.confirmSellCancel },
                                                 domain = new JObject { new JProperty("item", receForm.domain), new JProperty("count", count), new JProperty("total", total), },
                                                 domain_source = (JArray)receForm.domain.Parent
                                             });
                                         }
                                         else
-                                        { Feedback(e.playername, "数值无效！"); }
+                                        { Feedback(e.playername, lang.InputRecycleDetailValueInvalid); }
                                     }
-                                    catch (Exception err) { WriteLineERR("confirmSell", err.ToString()); }
+                                    catch (Exception err) { WriteLineERR("InputSellDetail", err.ToString()); }
                                     break;
-                                case FormTag.confirmRecycle:
+                                case FormTag.InputRecycleDetail:
                                     try
                                     {    //receForm.domain;//选择项
                                         int count = Convert.ToInt32(JArray.Parse(e.selected)[0]);
@@ -542,16 +569,16 @@ namespace PFShop
                                         {
                                             SendForm(new FormINFO(e.playername, FormType.Model, FormTag.confirmedRecycle)
                                             {
-                                                title = "确认回收",
-                                                content = $"回收信息:\n  名称: {receForm.domain.Value<string>("name")}\n  数量: {count}\n  收益: {total}\n\n点击确认即可发送回收请求",
-                                                buttons = new JArray { "确认回收", "我再想想" },
+                                                title = lang.confirmRecycleTitle,
+                                                content = string.Format(lang.confirmRecycleContent, receForm.domain.Value<string>("name"), count, total),
+                                                buttons = new JArray { lang.confirmRecycleAccept, lang.confirmRecycleCancel },
                                                 domain = new JObject { new JProperty("item", receForm.domain), new JProperty("count", count), new JProperty("total", total), },
                                                 domain_source = (JArray)receForm.domain.Parent
                                             });
                                         }
-                                        else { Feedback(e.playername, "数值无效！"); }
+                                        else { Feedback(e.playername, lang.InputSellDetailValueInvalid); }
                                     }
-                                    catch (Exception err) { WriteLineERR("confirmRecycle", err.ToString()); }
+                                    catch (Exception err) { WriteLineERR("InputRecycleDetail", err.ToString()); }
                                     break;
                                 case FormTag.confirmedSell:
                                     try
@@ -567,16 +594,16 @@ namespace PFShop
                                             //success
                                             ExecuteCMD(e.playername, $"give @s[tag=buy_success] {item.Value<string>("id")} {count} {item.Value<string>("damage")}");
                                             ExecuteCMD(e.playername, $"scoreboard players remove @s[tag=buy_success] money {total}");
-                                            ExecuteCMD(e.playername, "titleraw @s[tag=buy_success] title {\"rawtext\":[{\"text\":\"\\n\\n\\n§b购买成功\"}]}");
-                                            ExecuteCMD(e.playername, $"titleraw @s[tag=buy_success] subtitle {{\"rawtext\":[{{\"text\":\"已花费 {total} 像素币\\n购买 {count} 个 {item.Value<string>("name")} \"}}]}}");
+                                            ExecuteCMD(e.playername, "titleraw @s[tag=buy_success] title {\"rawtext\":[{\"text\":\"" + StringToUnicode(lang.buySuccessfullyTitle) + "\"}]}");
+                                            ExecuteCMD(e.playername, $"titleraw @s[tag=buy_success] subtitle {{\"rawtext\":[{{\"text\":\"{StringToUnicode(string.Format(lang.buySuccessfullySubtitle, total, count, item.Value<string>("name")))}\"}}]}}");
                                             //fail
-                                            ExecuteCMD(e.playername, "titleraw @s[tag=!buy_success] title {\"rawtext\":[{\"text\":\"\\n\\n\\n§c购买失败！\"}]}");
-                                            ExecuteCMD(e.playername, $"titleraw @s[tag=!buy_success] subtitle {{\"rawtext\":[{{\"text\":\"\\n购买 {count} 个 {item.Value<string>("name")} 需要 {total} 像素币\"}}]}}");
+                                            ExecuteCMD(e.playername, "titleraw @s[tag=!buy_success] title {\"rawtext\":[{\"text\":\"" + StringToUnicode(lang.buyFailedTitle) + "\"}]}");
+                                            ExecuteCMD(e.playername, $"titleraw @s[tag=!buy_success] subtitle {{\"rawtext\":[{{\"text\":\"{StringToUnicode(string.Format(lang.buyFailedSubtitle, total, count, item.Value<string>("name")))}\"}}]}}");
                                             //-END
                                         }
                                         else
                                         {
-                                            Feedback(e.playername, "购买已取消");
+                                            Feedback(e.playername, lang.confirmSellCanceled);
                                         }
                                     }
                                     catch (Exception err) { WriteLineERR("confirmedSell", err.ToString()); }
@@ -599,8 +626,8 @@ namespace PFShop
                                             string getItemsRaw = api.getPlayerItems(GetUUID(e.playername));
                                             if (string.IsNullOrEmpty(getItemsRaw))
                                             {
-                                                WriteLineERR("API获取失败", "api.getPlayerItems尚不支持，请使用CSR商业版运行本插件");
-                                                Feedback(e.playername, "api.getPlayerItems尚不支持，请使用CSR商业版运行本插件");
+                                                WriteLineERR(lang.recycleGetItemApiFailed, lang.recycleGetItemApiFailedDetail);
+                                                Feedback(e.playername, lang.recycleGetItemApiFailedDetail);
                                             }
                                             else
                                             {
@@ -636,17 +663,17 @@ namespace PFShop
                                                 {
                                                     ExecuteCMD(e.playername, $"clear @s {item["id"]} {item["damage"]} {count}");
                                                     ExecuteCMD(e.playername, "scoreboard players add @s money " + total);
-                                                    ExecuteCMD(e.playername, "titleraw @s title {\"rawtext\":[{\"text\":\"\n\n\n§a回收成功\"}]}");
-                                                    ExecuteCMD(e.playername, $"titleraw @s subtitle {{\"rawtext\":[{{\"text\":\"回收了 {count} 个 {item["name"]} 获得 {total} 像素币\"}}]}}");
+                                                    ExecuteCMD(e.playername, "titleraw @s title {\"rawtext\":[{\"text\":\"" + StringToUnicode(lang.recycleSuccessfullyTitle) + "\"}]}");
+                                                    ExecuteCMD(e.playername, $"titleraw @s subtitle {{\"rawtext\":[{{\"text\":\"{StringToUnicode(string.Format(lang.recycleSuccessfullySubtitle, total, count, item.Value<string>("name")))}\"}}]}}");
                                                 }
                                                 else
                                                 {
-                                                    ExecuteCMD(e.playername, "titleraw @s title {\"rawtext\":[{\"text\":\"\n\n\n§c回收失败！\"}]}");
-                                                    ExecuteCMD(e.playername, $"titleraw @s subtitle {{\"rawtext\":[{{\"text\":\"你背包里只有 {totalcount} 个 {item["name"]}\"}}]}}");
+                                                    ExecuteCMD(e.playername, "titleraw @s title {\"rawtext\":[{\"text\":\"" + StringToUnicode(lang.recycleFailedTitle) + "\"}]}");
+                                                    ExecuteCMD(e.playername, $"titleraw @s subtitle {{\"rawtext\":[{{\"text\":\"{StringToUnicode(string.Format(lang.recycleFailedSubtitle, total, count, item.Value<string>("name"), totalcount))}\"}}]}}");
                                                 }
                                             }
                                         }
-                                        else { Feedback(e.playername, "回收已取消"); }
+                                        else { Feedback(e.playername, lang.confirmRecycleCanceled); }
                                     }
                                     catch (Exception err) { WriteLineERR("confirmedRecycle", err.ToString()); }
                                     break;
@@ -662,7 +689,7 @@ namespace PFShop
                                         preference[e.playername]["recycle"]["slide_size_i"] = set[3];
                                         preference[e.playername]["recycle"]["slide_size"] = size[set[3]];
                                         SavePreference();
-                                        Feedback(e.playername, "个人设置保存成功");
+                                        Feedback(e.playername, lang.preferenceSaved);
                                     }
                                     catch (Exception err) { WriteLineERR("preferenceMain", err.ToString()); }
                                     break;

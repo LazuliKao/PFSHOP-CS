@@ -16,7 +16,7 @@ namespace PFShop
         }
         public enum FormTag
         {
-            Main, sellMain, recycleMain, preferenceMain, confirmSell, confirmRecycle, confirmedSell, confirmedRecycle
+            Main, sellMain, recycleMain, preferenceMain, InputSellDetail, InputRecycleDetail, confirmedSell, confirmedRecycle
         }
         public FormINFO(string _playername, FormType _type, FormTag _tag)
         {

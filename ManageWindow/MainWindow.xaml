@@ -11,6 +11,7 @@
                      Loaded="MaterialWindow_Loaded"
                      Background="#FF303030"
                      FontFamily="Microsoft YaHei"
+                     Closing="MaterialWindow_Closing"
                      >
     <Window.Resources>
         <ResourceDictionary>

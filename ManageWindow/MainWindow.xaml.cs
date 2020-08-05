@@ -19,7 +19,7 @@ namespace ManageWindow
     /// <summary>
     /// MainWindow.xaml 的交互逻辑
     /// </summary>
-    public partial class MainWindow 
+    public partial class MainWindow
     {
         public MainWindow()
         {
@@ -33,10 +33,32 @@ namespace ManageWindow
         {
             Process.Start("https://github.com/littlegao233/PFShop-CS/releases");
         }
-
+        public void WriteLine(object content)
+        {
+            ConsoleColor defaultForegroundColor = Console.ForegroundColor;
+            ConsoleColor defaultBackgroundColor = Console.BackgroundColor;
+            void ResetConsoleColor()
+            {
+                Console.ForegroundColor = defaultForegroundColor;
+                Console.BackgroundColor = defaultBackgroundColor;
+            }
+            Console.Write($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("PFSHOP]");
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.Write("[WPF] ");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(content);
+            ResetConsoleColor(); 
+        }
         private void MaterialWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            Console.WriteLine("窗體加載成功！");
+            WriteLine("窗體加載成功！");
+        }
+
+        private void MaterialWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            WriteLine("窗體已關閉...");
         }
     }
 }
