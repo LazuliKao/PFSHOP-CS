@@ -23,8 +23,7 @@ namespace PFShop
             playername = _playername;
             Type = _type;
             Tag = _tag; 
-            playeruuid = Program.GetUUID(_playername);
- 
+            playeruuid = Program.GetUUID(_playername); 
         }
         public FormType Type;
         public FormTag Tag;

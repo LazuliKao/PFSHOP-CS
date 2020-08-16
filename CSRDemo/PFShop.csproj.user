@@ -10,7 +10,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <StartAction>Program</StartAction>
     <StartProgram>C:\Users\gaoxi\source\repos\PFShop-CS\MG\MCModDllExe\MCDllInject.exe</StartProgram>
-    <StartArguments>MCPE\bedrock_server.exe MCModDll</StartArguments>
-    <StartWorkingDirectory>C:\Users\gaoxi\source\repos\PFShop-CS\MG\</StartWorkingDirectory>
+    <StartArguments>..\MCPE\bedrock_server_mod.exe ..\MCModDll</StartArguments>
+    <StartWorkingDirectory>C:\Users\gaoxi\source\repos\PFShop-CS\MG\MCModDllExe\</StartWorkingDirectory>
   </PropertyGroup>
 </Project>

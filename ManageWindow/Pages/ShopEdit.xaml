@@ -9,7 +9,7 @@
       Title="ShopEdit">
     <Grid>
         <Grid  MinWidth="220">
-            <Grid.RowDefinitions>
+            <!--<Grid.RowDefinitions>
                 <RowDefinition      Height="*" />
                 <RowDefinition      Height="Auto" />
             </Grid.RowDefinitions>
@@ -22,7 +22,7 @@
                         <TextBlock Text="{Binding Name}"          Margin="3 2"          ToolTip="{Binding Director}" />
                     </DataTemplate>
                 </TreeView.Resources>
-            </TreeView>
+            </TreeView>-->
             <materialDesign:PopupBox    Grid.Row="1"    Style="{StaticResource MaterialDesignMultiFloatingActionPopupBox}"    PlacementMode="LeftAndAlignMiddles"    UnfurlOrientation="Horizontal"   ToolTip="Manage items"    Margin="0 0 10 10"     HorizontalAlignment="Right"  VerticalAlignment="Bottom">
                 <StackPanel      Orientation="Horizontal">
                     <Button     ToolTip="Add an item"      Command="{Binding AddCommand}">

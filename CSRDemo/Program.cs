@@ -38,7 +38,7 @@ namespace PFShop
         {
             Console.Write($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} ");
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("PFSHOP");  
+            Console.Write("PFSHOP");
             Console.ForegroundColor = defaultForegroundColor;
             Console.Write("]");
             Console.ForegroundColor = ConsoleColor.Red;
@@ -302,24 +302,35 @@ namespace PFShop
                 #region INFO
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.BackgroundColor = ConsoleColor.Magenta;
-                Dictionary<string, int> authorsInfo = new Dictionary<string, int>() {
-                    //{ "███████████████████████████\t",0 },
-                    { "正在裝載PFSHOP",6 },
-                    { "作者       \tgxh2004", 5},
-                    { "版本信息\tv" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() ,4 },
-                    { "适用于bds1.16.1(CSR1.16.1v4)" ,4 },
-                    { "如版本不同可能存在问题", 5},
-                    { "基於C#+WPF窗體" , 6},
-                    { "当前CSRunnerAPI版本:" + api.VERSION , 4},
-                    { "控制台輸入\"pf\"即可打開快速配置窗體(未完善)" , 2},
-                    //{ "████████████████████████",1 },
-                 };
-                foreach (var item in authorsInfo)
+                try
                 {
-                    string input = item.Key;
-                    for (int i = 0; i < item.Value; i++) input += "\t";
-                    Console.WriteLine(input);
+
+                    string[] authorsInfo = new string[] {
+                        "███████████████████████████" ,
+                        "正在裝載PFSHOP",
+                        "作者           gxh2004",
+                        "版本信息    v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() ,
+                        "适用于bds1.16(CSRV0.1.16.20.3v4编译)"  ,
+                        "如版本不同可能存在问题" ,
+                        "基於C#+WPF窗體"  ,
+                        "当前CSRunnerAPI版本:" + api.VERSION  ,
+                        "控制台輸入\"pf\"即可打開快速配置窗體(未完善)"  ,
+                        "███████████████████████████"
+                    };
+                    Func<string, int> GetLength = (input) => { return Encoding.GetEncoding("GBK").GetByteCount(input); };
+                    int infoLength = 0;
+                    foreach (var line in authorsInfo) infoLength = Math.Max(infoLength, GetLength(line));
+                    for (int i = 0; i < authorsInfo.Length; i++)
+                    {
+                        while (GetLength(authorsInfo[i]) < infoLength)
+                        {
+                            authorsInfo[i] += " ";
+                        }
+                        Console.WriteLine("█" + authorsInfo[i]+ "█");
+                    }
+
                 }
+                catch (Exception) { }
                 ResetConsoleColor();
                 #endregion
                 #region 读取配置

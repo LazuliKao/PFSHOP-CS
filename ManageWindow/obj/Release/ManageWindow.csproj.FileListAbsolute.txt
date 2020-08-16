@@ -37,3 +37,5 @@ C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\obj\Release\ManageWindow.cspr
 C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\obj\Release\ManageWindow.csproj.CopyComplete
 C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\obj\Release\ManageWindow.exe
 C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\obj\Release\ManageWindow.pdb
+C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\obj\Release\Pages\ShopEdit.g.cs
+C:\Users\gaoxi\source\repos\PFShop-CS\ManageWindow\obj\Release\Pages\ShopEdit.baml

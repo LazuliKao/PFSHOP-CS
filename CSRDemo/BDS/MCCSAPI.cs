@@ -7,6 +7,8 @@
  * 要改变这种模板请点击 工具|选项|代码编写|编辑标准头文件
  */
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -34,6 +36,9 @@ namespace CSR
         /// 平台类型
         /// </summary>
         public bool COMMERCIAL {get{return mcommercial;}}
+
+		// 注册事件回调管理，避免回收
+		private Dictionary<string, ArrayList> callbks = new Dictionary<string, ArrayList>();
 
 		private IntPtr hLib;
         public MCCSAPI(String DLLPath, string ver, bool commercial)
@@ -227,6 +232,39 @@ namespace CSR
 			#endregion
 		}
 
+		// 保管一个事件
+		private void addcb(string k, EventCab cb)
+        {
+			ArrayList al;
+			if (callbks.TryGetValue(k, out al))
+			{
+				if (al != null)
+					al.Add(cb);
+				else
+				{
+					al = new ArrayList();
+					al.Add(cb);
+					callbks[k] = al;
+				}
+			}
+			else
+			{
+				al = new ArrayList();
+				al.Add(cb);
+				callbks[k] = al;
+			}
+		}
+		// 移除一个事件处理
+		private void removecb(string k, EventCab cb)
+        {
+			ArrayList al;
+			if (callbks.TryGetValue(k, out al))
+			{
+				if (al != null)
+					al.Remove(cb);
+			}
+		}
+
 		/// <summary>
 		/// 设置事件发生前监听
 		/// </summary>
@@ -234,7 +272,13 @@ namespace CSR
 		/// <param name="cb"></param>
 		/// <returns></returns>
 		public bool addBeforeActListener(string key, EventCab cb) {
-			return caddBeforeActEvent != null && caddBeforeActEvent(key, cb);
+			bool r = caddBeforeActEvent != null && caddBeforeActEvent(key, cb);
+			if (r)
+            {
+				string k = "Before" + key;
+				addcb(k, cb);
+			}
+			return r;
 		}
 		
 		/// <summary>
@@ -244,7 +288,13 @@ namespace CSR
 		/// <param name="cb"></param>
 		/// <returns></returns>
 		public bool addAfterActListener(string key, EventCab cb) {
-			return caddAfterActEvent != null && caddAfterActEvent(key, cb);
+			bool r = caddAfterActEvent != null && caddAfterActEvent(key, cb);
+			if (r)
+            {
+				string k = "After" + key;
+				addcb(k, cb);
+			}
+			return r;
 		}
 		
 		/// <summary>
@@ -254,7 +304,13 @@ namespace CSR
 		/// <param name="cb"></param>
 		/// <returns></returns>
 		public bool removeBeforeActListener(string key, EventCab cb) {
-			return cremoveBeforeAct != null && cremoveBeforeAct(key, cb);
+			bool r = cremoveBeforeAct != null && cremoveBeforeAct(key, cb);
+			if (r)
+            {
+				string k = "Before" + key;
+				removecb(k, cb);
+			}
+			return r;
 		}
 		
 		/// <summary>
@@ -264,7 +320,13 @@ namespace CSR
 		/// <param name="cb"></param>
 		/// <returns></returns>
 		public bool removeAfterActListener(string key, EventCab cb) {
-			return cremoveAfterAct != null && cremoveAfterAct(key, cb);
+			bool r = cremoveAfterAct != null && cremoveAfterAct(key, cb);
+			if (r)
+            {
+				string k = "After" + key;
+				removecb(k, cb);
+			}
+			return r;
 		}
 		
 		/// <summary>
@@ -341,8 +403,12 @@ namespace CSR
 		/// </summary>
 		/// <returns></returns>
 		public string getOnLinePlayers() {
-			return (cgetOnLinePlayers != null) ? StrTool.c_str(cgetOnLinePlayers()) :
+			try
+            {
+				return (cgetOnLinePlayers != null) ? StrTool.c_str(cgetOnLinePlayers()) :
 				string.Empty;
+			} catch(Exception e) { Console.WriteLine(e.StackTrace); }
+			return string.Empty;
 		}
 		
 		/// <summary>
@@ -355,8 +421,12 @@ namespace CSR
 		/// <param name="exblk">是否导出方块</param>
 		/// <returns>结构json字符串</returns>
 		public string getStructure(int did, string jsonposa, string jsonposb, bool exent, bool exblk) {
-			return (cgetStructure != null) ? StrTool.c_str(cgetStructure(did, jsonposa, jsonposb, exent, exblk)) :
+			try
+			{
+				return (cgetStructure != null) ? StrTool.c_str(cgetStructure(did, jsonposa, jsonposb, exent, exblk)) :
 				string.Empty;
+			}catch (Exception e) { Console.WriteLine(e.StackTrace); }
+			return string.Empty;
 		}
 		/// <summary>
 		/// 设置一个结构到指定位置<br/>
@@ -391,8 +461,13 @@ namespace CSR
 		/// <param name="uuid">在线玩家的uuid字符串</param>
 		/// <returns>能力json字符串</returns>
 		public string getPlayerAbilities(string uuid) {
-			return (cgetPlayerAbilities != null) ? StrTool.c_str(cgetPlayerAbilities(uuid)) :
+			try
+            {
+				return (cgetPlayerAbilities != null) ? StrTool.c_str(cgetPlayerAbilities(uuid)) :
 				string.Empty;
+			}
+			catch(Exception e) { Console.WriteLine(e.StackTrace); }
+			return string.Empty;
 		}
 		/// <summary>
 		/// 设置玩家能力表<br/>
@@ -412,8 +487,13 @@ namespace CSR
 		/// <param name="uuid">在线玩家的uuid字符串</param>
 		/// <returns>属性json字符串</returns>
 		public string getPlayerAttributes(string uuid) {
-			return (cgetPlayerAttributes != null) ? StrTool.c_str(cgetPlayerAttributes(uuid)) :
+			try
+            {
+				return (cgetPlayerAttributes != null) ? StrTool.c_str(cgetPlayerAttributes(uuid)) :
 				string.Empty;
+			} catch (Exception e) { Console.WriteLine(e.StackTrace); }
+			return string.Empty;
+			
 		}
 		/// <summary>
 		/// 设置玩家属性临时值表<br/>
@@ -431,8 +511,12 @@ namespace CSR
 		/// <param name="uuid">在线玩家的uuid字符串</param>
 		/// <returns>属性上限值json字符串</returns>
 		public string getPlayerMaxAttributes(string uuid) {
-			return (cgetPlayerMaxAttributes != null) ? StrTool.c_str(cgetPlayerMaxAttributes(uuid)) :
+			try
+            {
+				return (cgetPlayerMaxAttributes != null) ? StrTool.c_str(cgetPlayerMaxAttributes(uuid)) :
 				string.Empty;
+			} catch (Exception e) { Console.WriteLine(e.StackTrace); }
+			return string.Empty;
 		}
 		/// <summary>
 		/// 设置玩家属性上限值表<br/>
@@ -452,8 +536,12 @@ namespace CSR
 		/// <param name="uuid">在线玩家的uuid字符串</param>
 		/// <returns>物品列表json字符串</returns>
 		public string getPlayerItems(string uuid) {
-			return (cgetPlayerItems != null) ? StrTool.c_str(cgetPlayerItems(uuid)) :
+			try
+            {
+				return (cgetPlayerItems != null) ? StrTool.c_str(cgetPlayerItems(uuid)) :
 				string.Empty;
+			} catch(Exception e) { Console.WriteLine(e.StackTrace); }
+			return string.Empty;
 		}
 		/// <summary>
 		/// 设置玩家所有物品列表<br/>
@@ -472,8 +560,12 @@ namespace CSR
 		/// <param name="uuid">在线玩家的uuid字符串</param>
 		/// <returns>当前选中项信息json字符串</returns>
 		public string getPlayerSelectedItem(string uuid) {
-			return (cgetPlayerSelectedItem != null) ? StrTool.c_str(cgetPlayerSelectedItem(uuid)) :
+			try
+            {
+				return (cgetPlayerSelectedItem != null) ? StrTool.c_str(cgetPlayerSelectedItem(uuid)) :
 				string.Empty;
+			} catch (Exception e) { Console.WriteLine(e.StackTrace); }
+			return string.Empty;
 		}
 		/// <summary>
 		/// 增加玩家一个物品<br/>
@@ -503,8 +595,12 @@ namespace CSR
 		/// <param name="uuid">在线玩家的uuid字符串</param>
 		/// <returns>效果列表json字符串</returns>
 		public string getPlayerEffects(string uuid) {
-			return (cgetPlayerEffects != null) ? StrTool.c_str(cgetPlayerEffects(uuid)) :
+			try
+            {
+				return (cgetPlayerEffects != null) ? StrTool.c_str(cgetPlayerEffects(uuid)) :
 				string.Empty;
+			} catch (Exception e) { Console.WriteLine(e.StackTrace); }
+			return string.Empty;
 		}
 		/// <summary>
 		/// 设置玩家所有效果列表<br/>
@@ -542,8 +638,12 @@ namespace CSR
 		/// <param name="uuid">在线玩家的uuid字符串</param>
 		/// <returns>玩家基本信息json字符串</returns>
 		public string selectPlayer(string uuid) {
-			return (cselectPlayer != null) ? StrTool.c_str(cselectPlayer(uuid)) :
+			try
+            {
+				return (cselectPlayer != null) ? StrTool.c_str(cselectPlayer(uuid)) :
 				string.Empty;
+			} catch (Exception e) { Console.WriteLine(e); }
+			return string.Empty;
 		}
 		
 		/// <summary>
@@ -660,8 +760,12 @@ namespace CSR
 		/// <param name="uuid">在线玩家的uuid字符串</param>
 		/// <returns>权限与模式的json字符串</returns>
 		public string getPlayerPermissionAndGametype(string uuid) {
-			return (cgetPlayerPermissionAndGametype != null) ? StrTool.c_str(cgetPlayerPermissionAndGametype(uuid)) :
+			try
+            {
+				return (cgetPlayerPermissionAndGametype != null) ? StrTool.c_str(cgetPlayerPermissionAndGametype(uuid)) :
 				string.Empty;
+			} catch (Exception e) { Console.WriteLine(e.StackTrace); }
+			return string.Empty;
 		}
 		/// <summary>
 		/// 设置玩家权限与游戏模式<br/>
