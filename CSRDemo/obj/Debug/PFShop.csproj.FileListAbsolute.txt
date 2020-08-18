@@ -1,8 +1,0 @@
-C:\Users\gaoxi\source\repos\PFShop-CS\MG\MCPE\CSR\PFShop.csr.dll
-C:\Users\gaoxi\source\repos\PFShop-CS\MG\MCPE\CSR\PFShop.csr.pdb
-C:\Users\gaoxi\source\repos\PFShop-CS\CSRDemo\obj\Debug\PFShop.csprojAssemblyReference.cache
-C:\Users\gaoxi\source\repos\PFShop-CS\CSRDemo\obj\Debug\PFShop.csproj.CoreCompileInputs.cache
-C:\Users\gaoxi\source\repos\PFShop-CS\CSRDemo\obj\Debug\PFShop.csproj.Fody.CopyLocal.cache
-C:\Users\gaoxi\source\repos\PFShop-CS\CSRDemo\obj\Debug\PFShop.csproj.CopyComplete
-C:\Users\gaoxi\source\repos\PFShop-CS\CSRDemo\obj\Debug\PFShop.csr.dll
-C:\Users\gaoxi\source\repos\PFShop-CS\CSRDemo\obj\Debug\PFShop.csr.pdb
