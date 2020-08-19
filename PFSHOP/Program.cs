@@ -90,7 +90,7 @@ namespace PFShop
 #if DEBUG
                         WriteLine("窗体线程manualResetEvent返回:" +
 #endif
-                                    manualResetEvent.WaitOne()
+                        manualResetEvent.WaitOne()
 #if DEBUG
                                     )
 #endif
@@ -765,11 +765,20 @@ namespace PFShop
                         var e = BaseEvent.getFrom(x) as ServerCmdEvent;
                         if (e != null)
                         {
-                            if (e.cmd.ToLower() == "pf")
+                            switch (e.cmd.ToLower())
                             {
-                                WriteLine("正在打开窗体");
-                                ShowSettingWindow();
-                                return false;
+                                case "pf":
+                                    {
+                                        WriteLine("正在打开窗体");
+                                        ShowSettingWindow();
+                                        return false;
+                                    }
+                                case "shop reload":
+                                    {
+                                        shopdata = JObject.Parse(File.ReadAllText(shopdataPath));
+                                        WriteLine("商店配置重新读取成功成功");
+                                        return false;
+                                    }
                             }
                         }
                     }
@@ -808,8 +817,8 @@ namespace PFShop
                                         shopdata = JObject.Parse(File.ReadAllText(shopdataPath));
                                         Feedback(e.playername, "商店配置重新读取成功成功");
                                     }
-                                    else 
-                                        Feedback(e.playername, "无权限执行该命令"); 
+                                    else
+                                        Feedback(e.playername, "无权限执行该命令");
                                     return false;
                                 default:
                                     break;
