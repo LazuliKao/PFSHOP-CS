@@ -129,8 +129,7 @@ namespace PFShop
 
         #region API方法补充
         public static string GetUUID(string name) => JArray.Parse(api.getOnLinePlayers()).First(l => l.Value<string>("playername") == name).Value<string>("uuid");
-        public static void Feedback(string name, string text) => api.runcmd($"tellraw \"{name}\" {{\"rawtext\":[{{\"text\":\"§e§l[PFSHOP]§r§b{StringToUnicode(text)}\"}}]}}");
-        public static void ExecuteCMD(string name, string cmd) => api.runcmd($"execute \"{name}\" ~~~ {cmd}");
+        public static void Feedback(string name, string text) => ExecuteCMD(name, $"tellraw @s {{\"rawtext\":[{{\"text\":\"§e§l[PFSHOP]§r§b{StringToUnicode(text)}\"}}]}}");
         public static string StringToUnicode(string s)//字符串转UNICODE代码
         {
             char[] charbuffers = s.ToCharArray();
@@ -142,6 +141,33 @@ namespace PFShop
                 sb.Append(String.Format("\\u{0:X2}{1:X2}", buffer[1], buffer[0]));
             }
             return sb.ToString();
+        }
+        private static int cmdCount = 0;
+        public static bool ServerCmdOutputDetect(Events e)
+        {
+            try
+            {
+                if (cmdCount > 0)
+                {
+                    cmdCount--;
+                    if (cmdCount == 0)
+                        api.removeBeforeActListener(EventKey.onServerCmdOutput, ServerCmdOutputDetect);
+                    return false;
+                }
+            }
+            catch (Exception) { }
+            return true;
+        }
+        public static void ExecuteCMD(string name, string cmd)
+        {
+            try
+            {
+                if (cmdCount == 0)
+                    api.addBeforeActListener(EventKey.onServerCmdOutput, ServerCmdOutputDetect);
+                cmdCount++;
+            }
+            catch (Exception) { }
+            api.runcmd($"execute \"{name}\" ~~~ {cmd}");
         }
         #endregion
         #region 表单方法
@@ -286,7 +312,7 @@ namespace PFShop
         }
         //语言文件
         private static Language lang = new Language();
-        public static void init(MCCSAPI base_api)
+        public static void Init(MCCSAPI base_api)
         {
             _ = Task.Run(() =>
             {
@@ -763,15 +789,22 @@ namespace PFShop
                         var e = BaseEvent.getFrom(x) as InputCommandEvent;
                         if (e != null)
                         {
-                            switch (e.cmd)
+                            switch (e.cmd.Substring(1).Trim())
                             {
-                                case "/shop":
+                                case "shop":
                                     if (!preference.ContainsKey(e.playername))
                                     {
                                         preference.Add(e.playername, JObject.Parse("{\"sell\":{\"input_type\":0,\"slide_size_i\":1,\"slide_size\":16},\"recycle\":{\"input_type\":0,\"slide_size_i\":3,\"slide_size\":64}}"));
                                         SavePreference();
                                     }
                                     SendMain(e.playername);
+                                    return false;
+                                case "shop reload":
+                                    string PermissionRaw = api.getPlayerPermissionAndGametype(GetUUID(e.playername));
+                                    if (string.IsNullOrEmpty(PermissionRaw)) return true;
+                                    Console.WriteLine(PermissionRaw);
+                                    JObject permission = JObject.Parse(PermissionRaw);
+                                    //Feedback(e.playername,"")
                                     return false;
                                 default:
                                     break;
@@ -1099,7 +1132,7 @@ namespace CSR
             try
             {
                 // TODO 此接口为必要实现
-                PFShop.Program.init(api);
+                PFShop.Program.Init(api);
             }
             catch (Exception err)
             { Console.WriteLine(err.ToString()); }
