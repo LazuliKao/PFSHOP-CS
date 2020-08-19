@@ -802,9 +802,14 @@ namespace PFShop
                                 case "shop reload":
                                     string PermissionRaw = api.getPlayerPermissionAndGametype(GetUUID(e.playername));
                                     if (string.IsNullOrEmpty(PermissionRaw)) return true;
-                                    Console.WriteLine(PermissionRaw);
                                     JObject permission = JObject.Parse(PermissionRaw);
-                                    //Feedback(e.playername,"")
+                                    if (permission.Value<int>("permission") > 1)
+                                    {
+                                        shopdata = JObject.Parse(File.ReadAllText(shopdataPath));
+                                        Feedback(e.playername, "商店配置重新读取成功成功");
+                                    }
+                                    else 
+                                        Feedback(e.playername, "无权限执行该命令"); 
                                     return false;
                                 default:
                                     break;
