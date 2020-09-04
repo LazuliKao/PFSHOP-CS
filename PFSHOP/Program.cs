@@ -22,6 +22,7 @@ namespace PFShop
     public class Program
     {
         private static MCCSAPI api = null;
+        #region console
         public static void WriteLine(object content)
         {
             Console.Write($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} ");
@@ -51,7 +52,14 @@ namespace PFShop
             Console.WriteLine(content);
             ResetConsoleColor();
         }
-        //public static Task<T> StartSTATask<T>(Func<T> func)
+        private static ConsoleColor defaultForegroundColor = ConsoleColor.White;
+        private static ConsoleColor defaultBackgroundColor = ConsoleColor.Black;
+        private static void ResetConsoleColor()
+        {
+            Console.ForegroundColor = defaultForegroundColor;
+            Console.BackgroundColor = defaultBackgroundColor;
+        }
+        #endregion        //public static Task<T> StartSTATask<T>(Func<T> func)
         //{
         //    var tcs = new TaskCompletionSource<T>();
         //    var thread = new Thread(() =>
@@ -171,10 +179,7 @@ namespace PFShop
         }
         #endregion
         #region 表单方法
-        #region struct
-
-        #endregion
-        public static void LoadFormTip(string playername)
+         public static void LoadFormTip(string playername)
         {
             ExecuteCMD(playername, "title @s times 0 20 10");
             ExecuteCMD(playername, "titleraw @s title {\"rawtext\":[{\"text\":\"\n\n\n\n\"}]}");
@@ -303,14 +308,7 @@ namespace PFShop
         public static string preferencePath = Path.GetFullPath("plugins\\pfshop\\preference.json");
         public static void SavePreference() => File.WriteAllText(preferencePath, preference.ToString());
         #endregion
-        private static ConsoleColor defaultForegroundColor = ConsoleColor.White;
-        private static ConsoleColor defaultBackgroundColor = ConsoleColor.Black;
-        private static void ResetConsoleColor()
-        {
-            Console.ForegroundColor = defaultForegroundColor;
-            Console.BackgroundColor = defaultBackgroundColor;
-        }
-        //语言文件
+         //语言文件
         private static Language lang = new Language();
         public static void Init(MCCSAPI base_api)
         {
