@@ -37,7 +37,7 @@ namespace PFShop
 
         public string confirmRecycleTitle = "确认回收";
         public string confirmRecycleContent = "回收信息:\n  名称: {0}\n  数量: {1}\n  收益: {2}\n\n点击确认即可发送回收请求";
-        public string confirmRecycleAccept = "确认购买";
+        public string confirmRecycleAccept = "确认回收";
         public string confirmRecycleCancel = "我再想想";
         public string confirmRecycleCanceled = "回收已取消";
 
@@ -47,7 +47,7 @@ namespace PFShop
         public string buyFailedSubtitle= "购买 {1} 个 {2} 需要 {0} 像素币";
 
         public string recycleGetItemApiFailed = "API获取失败";
-        public string recycleGetItemApiFailedDetail = "api.getPlayerItems函数尚不支持，请使用CSR商业版运行本插件";
+        public string recycleGetItemApiFailedDetail = "api.getPlayerItems()函数尚不支持，请使用CSR商业版运行本插件";
 
         public string recycleSuccessfullyTitle = "\n\n\n§a回收成功";
         public string recycleSuccessfullySubtitle = "回收了 {1} 个 {2} 获得 {0} 像素币";

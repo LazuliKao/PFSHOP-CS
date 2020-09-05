@@ -14,3 +14,5 @@ C:\Users\gaoxi\source\repos\PFSHOP\PFSHOP\obj\Release\PFShop.csproj.Fody.CopyLoc
 C:\Users\gaoxi\source\repos\PFSHOP\PFSHOP\obj\Release\PFShop.csproj.CopyComplete
 C:\Users\gaoxi\source\repos\PFSHOP\PFSHOP\obj\Release\PFShop.csr.dll
 C:\Users\gaoxi\source\repos\PFSHOP\PFSHOP\obj\Release\PFShop.csr.pdb
+C:\Users\gaoxi\source\repos\CSR\CSRDll\PFShop.csr.dll
+C:\Users\gaoxi\source\repos\CSR\CSRDll\PFShop.csr.pdb

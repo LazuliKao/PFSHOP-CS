@@ -1,4 +1,5 @@
-﻿using System;
+﻿#define FromUrl
+using System;
 using System.Collections.Generic;
 using System.Text;
 using CSR;
@@ -15,15 +16,16 @@ using System.Collections;
 using Ookii.Dialogs.Wpf;
 using System.Diagnostics;
 using System.Net.Sockets;
+using Timer = System.Timers.Timer;
 //using PFShop;
 
 namespace PFShop
 {
-    public class Program
+    internal class Program
     {
         private static MCCSAPI api = null;
         #region console
-        public static void WriteLine(object content)
+        internal static void WriteLine(object content)
         {
             Console.Write($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} ");
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -35,7 +37,7 @@ namespace PFShop
             ResetConsoleColor();
             Console.WriteLine(content);
         }
-        public static void WriteLineERR(object type, object content)
+        internal static void WriteLineERR(object type, object content)
         {
             Console.Write($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} ");
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -59,7 +61,7 @@ namespace PFShop
             Console.ForegroundColor = defaultForegroundColor;
             Console.BackgroundColor = defaultBackgroundColor;
         }
-        #endregion        //public static Task<T> StartSTATask<T>(Func<T> func)
+        #endregion        //internal static Task<T> StartSTATask<T>(Func<T> func)
         //{
         //    var tcs = new TaskCompletionSource<T>();
         //    var thread = new Thread(() =>
@@ -78,67 +80,93 @@ namespace PFShop
         //    return tcs.Task;
         //} 
         //private static Task windowTask = null;
-        private static Thread windowthread = null;
-        private static ManualResetEvent manualResetEvent = null;
+        //        private static Thread windowthread = null;
+        //        private static ManualResetEvent manualResetEvent = null;
+        //        private static bool windowOpened = false;
+        //        private static void StartWindowThread()
+        //        {
+        //            try
+        //            {
+        //                WriteLine("正在加载WPF库");
+        //                while (true)
+        //                {
+        //                    try
+        //                    {
+        //                        windowOpened = true;
+        //                        new MainWindow().ShowDialog();
+        //                        windowOpened = false;
+        //                        manualResetEvent = new ManualResetEvent(false);
+        //                        GC.Collect();
+        //#if DEBUG
+        //                        WriteLine("窗体线程manualResetEvent返回:" +
+        //#endif
+        //                        manualResetEvent.WaitOne()
+        //#if DEBUG
+        //                                    )
+        //#endif
+        //                                    ;
+        //                        manualResetEvent.Reset();
+        //                    }
+        //                    catch (Exception err) { WriteLine("窗体执行过程中发生错误\n信息" + err.ToString()); }
+        //                }
+        //            }
+        //            catch (Exception err) { WriteLine("窗体线程发生严重错误\n信息" + err.ToString()); windowthread = null; }
+        //        }
+        //        private static void ShowSettingWindow()
+        //        {
+        //            try
+        //            {
+        //                if (windowthread == null || (!windowthread.IsAlive))
+        //                {
+        //                    windowthread = new Thread(StartWindowThread);
+        //                    windowthread.SetApartmentState(ApartmentState.STA);
+        //                    windowthread.Start();
+        //                }
+        //                else
+        //                { if (windowOpened) WriteLine("窗体已经打开"); else manualResetEvent.Set(); }
+        //            }
+        //            catch (Exception
+        //#if DEBUG
+        //            err
+        //#endif
+        //            )
+        //            {
+        //#if DEBUG
+        //                WriteLine(err.ToString());
+        //#endif
+        //            }
+        //        }
         private static bool windowOpened = false;
-        private static void StartWindowThread()
-        {
-            try
-            {
-                WriteLine("正在加载WPF库");
-                while (true)
-                {
-                    try
-                    {
-                        windowOpened = true;
-                        new MainWindow().ShowDialog();
-                        windowOpened = false;
-                        manualResetEvent = new ManualResetEvent(false);
-                        GC.Collect();
-#if DEBUG
-                        WriteLine("窗体线程manualResetEvent返回:" +
-#endif
-                        manualResetEvent.WaitOne()
-#if DEBUG
-                                    )
-#endif
-                                    ;
-                        manualResetEvent.Reset();
-                    }
-                    catch (Exception err) { WriteLine("窗体执行过程中发生错误\n信息" + err.ToString()); }
-                }
-            }
-            catch (Exception err) { WriteLine("窗体线程发生严重错误\n信息" + err.ToString()); windowthread = null; }
-        }
         private static void ShowSettingWindow()
         {
-            try
+            if (windowOpened) WriteLine("窗体已经打开");
+            else
             {
-                if (windowthread == null || (!windowthread.IsAlive))
+                if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
                 {
-                    windowthread = new Thread(StartWindowThread);
-                    windowthread.SetApartmentState(ApartmentState.STA);
-                    windowthread.Start();
+                    Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
+                    WriteLine("为加载UI,已设置当前运行线程为" + Thread.CurrentThread.GetApartmentState() + "线程");
                 }
-                else
-                { if (windowOpened) WriteLine("窗体已经打开"); else manualResetEvent.Set(); }
-            }
-            catch (Exception
-#if DEBUG
-            err
-#endif
-            )
-            {
-#if DEBUG
-                WriteLine(err.ToString());
-#endif
+                try
+                {
+                    WriteLine("正在打开窗体");
+                    Console.Beep();
+                    var height = Console.WindowHeight;
+                    var width = Console.WindowWidth;
+                    windowOpened = true;
+                    new MainWindow().ShowDialog();
+                    GC.Collect();
+                    Console.SetWindowSize(width, height);
+                    windowOpened = false;
+                }
+                catch (Exception err) { WriteLine("窗体线程发生严重错误\n信息" + err.ToString()); windowOpened = false; }
+
             }
         }
-
         #region API方法补充
-        public static string GetUUID(string name) => JArray.Parse(api.getOnLinePlayers()).First(l => l.Value<string>("playername") == name).Value<string>("uuid");
-        public static void Feedback(string name, string text) => ExecuteCMD(name, $"tellraw @s {{\"rawtext\":[{{\"text\":\"§e§l[PFSHOP]§r§b{StringToUnicode(text)}\"}}]}}");
-        public static string StringToUnicode(string s)//字符串转UNICODE代码
+        internal static string GetUUID(string name) => JArray.Parse(api.getOnLinePlayers()).First(l => l.Value<string>("playername") == name).Value<string>("uuid");
+        internal static void Feedback(string name, string text) => ExecuteCMD(name, $"tellraw @s {{\"rawtext\":[{{\"text\":\"§e§l[PFSHOP]§r§b{StringToUnicode(text)}\"}}]}}");
+        internal static string StringToUnicode(string s)//字符串转UNICODE代码
         {
             char[] charbuffers = s.ToCharArray();
             byte[] buffer;
@@ -146,58 +174,92 @@ namespace PFShop
             for (int i = 0; i < charbuffers.Length; i++)
             {
                 buffer = Encoding.Unicode.GetBytes(charbuffers[i].ToString());
-                sb.Append(String.Format("\\u{0:X2}{1:X2}", buffer[1], buffer[0]));
+                sb.Append(string.Format("\\u{0:X2}{1:X2}", buffer[1], buffer[0]));
             }
             return sb.ToString();
         }
+        #region CMD
         private static int cmdCount = 0;
-        public static bool ServerCmdOutputDetect(Events e)
+        internal static Timer ServerCmdOutputTimer = new Timer(3000);
+        private static void ServerCmdOutputTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            try
+#if DEBUG
+            WriteLine(cmdCount);
+#endif
+            ServerCmdOutputDetect();
+        }
+        internal static bool ServerCmdOutputDetect()
+        {
+            if (cmdCount > 0)
             {
-                if (cmdCount > 0)
-                {
-                    cmdCount--;
-                    if (cmdCount == 0)
-                        api.removeBeforeActListener(EventKey.onServerCmdOutput, ServerCmdOutputDetect);
-                    return false;
-                }
+                DqCmd();
+                return false;
             }
-            catch (Exception) { }
             return true;
         }
-        public static void ExecuteCMD(string name, string cmd)
+        internal static bool ServerCmdOutputDetect(Events e)
         {
             try
             {
-                if (cmdCount == 0)
-                    api.addBeforeActListener(EventKey.onServerCmdOutput, ServerCmdOutputDetect);
-                cmdCount++;
+                return ServerCmdOutputDetect();
+            }
+            catch (Exception) { return true; }
+        }
+        private static void EqCmd()
+        {
+            if (cmdCount == 0)
+            {
+                api.addBeforeActListener(EventKey.onServerCmdOutput, ServerCmdOutputDetect);
+                if (!ServerCmdOutputTimer.Enabled) ServerCmdOutputTimer.Start();
+            }
+            cmdCount++;
+#if DEBUG
+            WriteLine("EQ" + cmdCount);
+#endif
+        }
+        private static void DqCmd()
+        {
+            cmdCount--;
+            if (cmdCount == 0)
+            {
+                api.removeBeforeActListener(EventKey.onServerCmdOutput, ServerCmdOutputDetect);
+                if (ServerCmdOutputTimer.Enabled) ServerCmdOutputTimer.Stop();
+            }
+#if DEBUG
+            WriteLine("DQ" + cmdCount);
+#endif
+        }
+        internal static void ExecuteCMD(string name, string cmd)
+        {
+            try
+            {
+                EqCmd();
             }
             catch (Exception) { }
             api.runcmd($"execute \"{name}\" ~~~ {cmd}");
         }
         #endregion
+        #endregion
         #region 表单方法
-         public static void LoadFormTip(string playername)
+        internal static void LoadFormTip(string playername)
         {
-            ExecuteCMD(playername, "title @s times 0 20 10");
-            ExecuteCMD(playername, "titleraw @s title {\"rawtext\":[{\"text\":\"\n\n\n\n\"}]}");
-            ExecuteCMD(playername, "titleraw @s subtitle {\"rawtext\":[{\"text\":\"§a   Loading    §a\"}]}");
+            ExecuteCMD(playername, "titleraw @s times 0 20 10");
+            //ExecuteCMD(playername, "titleraw @s title {\"rawtext\":[{\"text\":\"\n\n\n\n\"}]}");
+            ExecuteCMD(playername, "titleraw @s title {\"rawtext\":[{\"text\":\"§a   Loading    §a\"}]}");
             _ = Task.Run(() =>
             {
                 Thread.Sleep(100);
-                ExecuteCMD(playername, "titleraw @s subtitle {\"rawtext\":[{\"text\":\"§a   Loading..   §a\"}]}");
+                ExecuteCMD(playername, "titleraw @s title {\"rawtext\":[{\"text\":\"§a   Loading..   §a\"}]}");
                 Thread.Sleep(100);
-                ExecuteCMD(playername, "titleraw @s subtitle {\"rawtext\":[{\"text\":\"§a   Loading....  §a\"}]}");
+                ExecuteCMD(playername, "titleraw @s title {\"rawtext\":[{\"text\":\"§a   Loading....  §a\"}]}");
                 Thread.Sleep(100);
-                ExecuteCMD(playername, "titleraw @s subtitle {\"rawtext\":[{\"text\":\"§a   Loading...... §a\"}]}");
+                ExecuteCMD(playername, "titleraw @s title {\"rawtext\":[{\"text\":\"§a   Loading...... §a\"}]}");
                 Thread.Sleep(100);
                 ExecuteCMD(playername, "titleraw @s clear");
             });
         }
-        public static List<FormINFO> FormQueue = new List<FormINFO>();
-        public static void SendForm(FormINFO form)
+        internal static List<FormINFO> FormQueue = new List<FormINFO>();
+        internal static void SendForm(FormINFO form)
         {
             try
             {
@@ -220,11 +282,13 @@ namespace PFShop
                                     JObject button = new JObject() { new JProperty("text", btsou.Value<string>("text")) };
                                     if (btsou.ContainsKey("image"))
                                     {
-                                        button.Add("image", new JObject()
-                                    {
-                                        new JProperty("type",Regex.IsMatch(btsou.Value<string>("image"),@"[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+\.?")   ? "url" : "path"),
-                                        new JProperty("data",btsou.Value<string>("image"))
-                                    });
+                                        if (btsou["image"].Type == JTokenType.String)
+                                        {
+                                            button.Add("image", new JObject{
+                                                new JProperty("type",Regex.IsMatch(btsou.Value<string>("image"),@"[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+\.?")   ? "url" : "path"),
+                                                new JProperty("data",btsou.Value<string>("image"))
+                                            });
+                                        }
                                     }
                                     buttons.Add(button);
                                 }
@@ -253,9 +317,9 @@ namespace PFShop
             catch (Exception err) { WriteLine("表单发送失败!\n" + err.ToString()); }
         }
         #region 序列化信息
-        public static JObject GetButton(string text, string image) => new JObject { new JProperty("text", text), new JProperty("image", image), };
-        public static JObject GetButtonRaw(string text) => new JObject { new JProperty("text", text) };
-        public static Func<JArray, JArray> GetSell = (items) =>
+        internal static JObject GetButton(string text, string image) => new JObject { new JProperty("text", text), new JProperty("image", image), };
+        internal static JObject GetButtonRaw(string text) => new JObject { new JProperty("text", text) };
+        internal static Func<JArray, JArray> GetSell = (items) =>
        {
            JArray get = new JArray() { GetButtonRaw("<==返回上级菜单") };
            foreach (JObject item in items)
@@ -273,7 +337,7 @@ namespace PFShop
            //WriteLine(get.ToString(Newtonsoft.Json.Formatting.None));
            return get;
        };
-        public static Func<JArray, JArray> GetRecycle = (items) =>
+        internal static Func<JArray, JArray> GetRecycle = (items) =>
         {
             JArray get = new JArray() { GetButtonRaw("<==返回上级菜单") };
             foreach (JObject item in items)
@@ -290,7 +354,7 @@ namespace PFShop
         };
         #endregion
         #region 方便调用的方法
-        public static void SendMain(string playername)
+        internal static void SendMain(string playername)
         {
             SendForm(new FormINFO(playername, FormType.Simple, FormTag.Main) { title = "商店", content = "来干点什么？", buttons = new JArray { "出售商店", "回收商店", "偏好设置" } });
         }
@@ -298,27 +362,178 @@ namespace PFShop
         #endregion
         #region 配置
         ////插件设置
-        //public static
+        //internal static
         //商店信息
-        public static JObject shopdata = new JObject();
-        public static string shopdataPath = Path.GetFullPath("plugins\\pfshop\\shopdata.json");
-        public static void SaveShopdata() => File.WriteAllText(shopdataPath, shopdata.ToString());
+        internal static JObject shopdata = new JObject();
+        internal static string shopdataPath = Path.GetFullPath("plugins\\pfshop\\shopdata.json");
+        internal static void SaveShopdata() => File.WriteAllText(shopdataPath, shopdata.ToString());
         //偏好设定
-        public static JObject preference = new JObject();
-        public static string preferencePath = Path.GetFullPath("plugins\\pfshop\\preference.json");
-        public static void SavePreference() => File.WriteAllText(preferencePath, preference.ToString());
+        internal static JObject preference = new JObject();
+        internal static string preferencePath = Path.GetFullPath("plugins\\pfshop\\preference.json");
+        internal static void SavePreference() => File.WriteAllText(preferencePath, preference.ToString());
         #endregion
-         //语言文件
-        private static Language lang = new Language();
-        public static void Init(MCCSAPI base_api)
+        #region URLParse
+#if FromUrl
+        private static void SetFromUrl(string url)
         {
+            Task.Run(() =>
+            {
+                try
+                {
+                    Native.Tool.Http.HttpWebClient webClient = new Native.Tool.Http.HttpWebClient();
+                    webClient.Encoding = Encoding.UTF8;
+                    //JObject shopdata =;
+                    JArray shopBuy = new JArray();
+                    JArray shopRecycle = new JArray();
+                    List<string> buyPath = new List<string>();
+                    List<string> recyclePath = new List<string>();
+                    JArray getContent(JArray data, List<string> path)
+                    {
+                        if (path.Count == 0) return data;
+                        string pathi = path.First();
+                        path.RemoveAt(0);
+                        if (!data.Any(l => l.Value<string>("type") == pathi))
+                        {
+                            //var i8 = shop_array[index - 1].split('\t')[8].replace(/ (\r |\n) */ g, '')
+                            //i.image = i8 == '' ? false : i8
+                            data.Add(new JObject {
+                                            { "type", pathi },
+                                            {"order",""},
+                                            {"image", null },
+                                            {"content",new JArray()}
+                                        });
+                        }
+                        return getContent((JArray)data.First(l => l.Value<string>("type") == pathi)["content"], path);
+                    }
+                    foreach (var shopItem in webClient.DownloadString(url).Split('>'))
+                    {
+                        var cells = shopItem.Split('\t');
+                        if (cells.Length == 16)
+                        {
+                            #region 回收 
+                            try { _ = Math.Round(double.Parse(Regex.Replace(cells[7], "[^\\d.]", ""))); } catch { cells[7] = "-1"; }
+                            if (cells[2] == "✔")
+                            {
+                                getContent(shopRecycle, recyclePath.ToList()).Add(new JObject {
+                                    {"order", cells[1]},
+                                    {"name",cells[3] },
+                                    {"id",  cells[4]},
+                                    {"damage",  cells[5]},
+                                    {"regex",  cells[6]},
+                                    {"award", Math.Round(double.Parse(Regex.Replace(cells[7], "[^\\d.-]", "")))},
+                                    {"image",string.IsNullOrWhiteSpace(cells[8] ) ? null : cells[8]}
+                                });
+                            }
+                            //分割
+                            else if (cells[2] == "═")
+                            {
+                                if (cells[4].Length == recyclePath.Count)
+                                    recyclePath[recyclePath.Count - 1] = cells[3];
+                                else if (cells[4].Length < recyclePath.Count)
+                                    recyclePath.RemoveAt(recyclePath.Count - 1);
+                                else
+                                    recyclePath.Add(cells[3]);
+                            }
+                            #endregion
+                            #region 购买
+                            try { _ = Math.Round(double.Parse(Regex.Replace(cells[14], "[^\\d.]", ""))); } catch { cells[14] = "-1"; }
+                            if (cells[10] == "✔")
+                            {
+                                getContent(shopBuy, buyPath.ToList()).Add(new JObject {
+                                    {"order", cells[1]},
+                                    {"name",cells[11] },
+                                    {"id",  cells[12]},
+                                    {"damage",  cells[13]},
+                                    {"price", Math.Round(double.Parse(Regex.Replace(cells[14], "[^\\d.-]", "")))},
+                                    {"image",string.IsNullOrWhiteSpace(cells[15] ) ? null : (cells[15]).Replace("\r\n","")}
+                                });
+                            }
+                            //分割
+                            else if (cells[10] == "═")
+                            {
+                                if (cells[12].Length == buyPath.Count)
+                                    buyPath[buyPath.Count - 1] = cells[11];
+                                else if (cells[12].Length < buyPath.Count)
+                                    buyPath.RemoveAt(buyPath.Count - 1);
+                                else
+                                    buyPath.Add(cells[11]);
+                            }
+                            #endregion
+
+                            //                                i.type = indexP
+                            //                                i.order = cells[1]
+                            //                                let i15 = shop_array[index - 1].split('\t')[15].replace(/ (\r |\n) */ g, '')
+                            //                                i.image = i15 == '' ? false : i15
+                            //         
+                            //                            i.order = cells[1]
+                            //                            i.name = cells[11]
+                            //                            i.id = cells[12]
+                            //                            i.damage = cells[13]
+                            //                            i.price = cells[14].split(' ')[0].replace(',', '')
+                            //                            let i15 = cells[15].replace(/ (\r |\n) */ g, '')
+                            //                            i.image = i15 == '' ? false : i15
+                            //                            obj.push(i)
+                            //                        }
+                            //    return obj
+                            //                    }
+                            //let sell_copy = new Array()
+                            //                    shopdata.sell.forEach(l => sell_copy.push(l))
+                            //                    shopdata.sell = GetContent(sell_copy)
+
+                            //                } else if (cells[10] == '═') {
+                            //                    if (cells[12].length == path_sell.length) {
+                            //                        path_sell[path_sell.length - 1] = cells[11]
+                            //                    } else if (cells[12].length<path_sell.length) {
+                            //                        path_sell.pop()
+                            //                    } else {
+                            //                        path_sell.push(cells[11])
+                            //                    }
+                            //                }
+                            //            }
+                        }
+                    }
+                    shopdata = new JObject { { "sell", shopBuy }, { "recycle", shopRecycle } };
+                    SaveShopdata();
+                }
+                catch (Exception err) { WriteLineERR("网络读取失败", url + "\n" + err); }
+            });
+        }
+#endif
+        #endregion
+        //语言文件
+        private static Language lang = new Language();
+        internal static void Init(MCCSAPI base_api)
+        {
+            ServerCmdOutputTimer.Elapsed += ServerCmdOutputTimer_Elapsed;
             _ = Task.Run(() =>
             {
                 Thread.Sleep(11000);
                 api.runcmd("scoreboard objectives add money dummy §b像素币");
+#if DEBUG
+                //for (int i = 0; i < 20; i++)
+                //{
+                //    api.runcmd("say test");
+                //    EqCmd();
+                //}
+#endif
+                EqCmd();
             });
             try
             {
+#if DEBUG
+                //base_api.addBeforeActListener(EventKey.onServerCmdOutput, (e) =>
+                //{
+                //    var ev = ServerCmdOutputEvent.getFrom(e);
+                //    WriteLine(ev.output);
+                //    return false;
+                //});
+                //base_api.addBeforeActListener(EventKey.onMove, (e) =>
+                //{
+                //    var ev = MoveEvent.getFrom(e);
+                //    WriteLine(string.Format("{0}: {1} {2} {3}", ev.playername, ev.XYZ.x, ev.XYZ.y, ev.XYZ.z));
+                //    return true;
+                //});
+#endif
                 #region 加载
                 api = base_api;
                 Console.OutputEncoding = Encoding.UTF8;
@@ -426,6 +641,9 @@ namespace PFShop
                         SaveShopdata();
                         WriteLineERR(lang.CantFindConfig, string.Format(lang.SaveDefaultConfigTo, shopdataPath));
                     }
+#if FromUrl
+                    SetFromUrl("https://gitee.com/Pixel_Faramita/webAPI/raw/master/survival/shop.txt");
+#endif
                 }
                 catch (Exception) { SaveShopdata(); }
                 //偏好设定
@@ -666,7 +884,7 @@ namespace PFShop
                                             int count = receForm.domain.Value<int>("count");
                                             //WriteLine("-------TEST------");
                                             //string uuid = GetUUID(e.playername);
-                                            //// public static string GetUUID(string name) => JArray.Parse(api.getOnLinePlayers()).First(l => l.Value<string>("playername") == name).Value<string>("uuid");
+                                            //// internal static string GetUUID(string name) => JArray.Parse(api.getOnLinePlayers()).First(l => l.Value<string>("playername") == name).Value<string>("uuid");
                                             //WriteLine(uuid);
                                             //WriteLine(api.getPlayerItems(uuid));
                                             //WriteLine("-------TEST------");
@@ -755,6 +973,7 @@ namespace PFShop
 
                 #region 事件
                 #region 控制台命令
+
                 base_api.addBeforeActListener(EventKey.onServerCmd, x =>
                 {
                     try
@@ -767,13 +986,16 @@ namespace PFShop
                             {
                                 case "pf":
                                     {
-                                        WriteLine("正在打开窗体");
                                         ShowSettingWindow();
                                         return false;
                                     }
                                 case "shop reload":
                                     {
+#if FromUrl
+                                        SetFromUrl("https://gitee.com/Pixel_Faramita/webAPI/raw/master/survival/shop.txt");
+#else
                                         shopdata = JObject.Parse(File.ReadAllText(shopdataPath));
+#endif
                                         WriteLine("商店配置重新读取成功成功");
                                         return false;
                                     }
@@ -787,6 +1009,7 @@ namespace PFShop
                 #region 服务器指令
                 // 输入指令监听
                 api.setCommandDescribe("shop", "§r§ePixelFaramitaSHOP商店插件主菜单");
+                api.setCommandDescribeEx("shop reload", "§r§ePixelFaramitaSHOP商店插件主菜单", MCCSAPI.CommandPermissionLevel.Admin, 0, 0);
                 //api.setCommandDescribeEx("shopi", "商店插件详细信息", MCCSAPI.CommandPermissionLevel.Admin, 0, 0);
                 base_api.addBeforeActListener(EventKey.onInputCommand, x =>
                 {
@@ -812,7 +1035,11 @@ namespace PFShop
                                     JObject permission = JObject.Parse(PermissionRaw);
                                     if (permission.Value<int>("permission") > 1)
                                     {
+#if FromUrl
+                                        SetFromUrl("https://gitee.com/Pixel_Faramita/webAPI/raw/master/survival/shop.txt");
+#else
                                         shopdata = JObject.Parse(File.ReadAllText(shopdataPath));
+#endif
                                         Feedback(e.playername, "商店配置重新读取成功成功");
                                     }
                                     else
@@ -1118,7 +1345,6 @@ namespace PFShop
 
                 #endregion
 
-
                 // 高级玩法，硬编码方式注册hook
 
                 //THook.init(api);
@@ -1128,6 +1354,7 @@ namespace PFShop
                 WriteLineERR("插件遇到严重错误，无法继续运行", err.Message);
             }
         }
+
     }
 }
 
@@ -1135,19 +1362,28 @@ namespace CSR
 {
     partial class Plugin
     {
-        /// <summary>
-        /// 通用调用接口，需用户自行实现
-        /// </summary>
-        /// <param name="api">MC相关调用方法</param>
-        public static void onStart(MCCSAPI api)
+        internal static Thread pluginThread = null;
+        internal static void SetupPluginThread(MCCSAPI api)
         {
-            try
+            pluginThread = new Thread(() =>
             {
-                // TODO 此接口为必要实现
-                PFShop.Program.Init(api);
-            }
-            catch (Exception err)
-            { Console.WriteLine(err.ToString()); }
+                try
+                {
+                    Program.Init(api);
+                }
+                catch (Exception err)
+                {
+                    Console.WriteLine("[PFSHOP崩了]（10s后自动重载...）\n错误信息:" + err.ToString());
+                    _ = Task.Run(() =>
+                    {
+                        Thread.Sleep(10000);
+                        SetupPluginThread(api);
+                    });
+                }
+            });
+            //pluginThread.SetApartmentState(ApartmentState.STA);
+            pluginThread.Start();
         }
+        internal static void onStart(MCCSAPI api) { SetupPluginThread(api); }
     }
 }

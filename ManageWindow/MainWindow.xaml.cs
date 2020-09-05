@@ -51,15 +51,18 @@ namespace ManageWindow
             Console.Write("[WPF] ");
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine(content);
-            ResetConsoleColor(); 
+            ResetConsoleColor();
         }
         private void MaterialWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            WriteLine("窗體加載成功！");
+            Console.SetWindowSize(Console.WindowWidth, 2);
+            WriteLine("窗體加載成功！(窗体打开后控制台会无法操作，关闭窗体即可恢复)");
+            Console.Title = "窗体打开后控制台会无法操作，关闭窗体即可恢复";
         }
-
+        private string title = Console.Title;
         private void MaterialWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            Console.Title = title;
             WriteLine("窗體已關閉...");
         }
     }
