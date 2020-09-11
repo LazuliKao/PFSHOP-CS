@@ -107,11 +107,13 @@
   </Target>
   <PropertyGroup>
     <PostBuildEvent>del /f $(TargetDir)MaterialDesignThemes.Wpf.xml
-del /f $(TargetDir)PFShop.csr.pdb
 del /f $(TargetDir)Newtonsoft.Json.xml
 del /f $(TargetDir)MaterialDesignExtensions.xml
 del /f $(TargetDir)ManageWindow.exe.config
 del /f $(TargetDir)Ookii.Dialogs.Wpf.xml</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\MaterialDesignThemes.3.1.3\build\MaterialDesignThemes.targets" Condition="Exists('..\packages\MaterialDesignThemes.3.1.3\build\MaterialDesignThemes.targets')" />
+  <PropertyGroup>
+    <PreBuildEvent>del /f $(TargetDir)*.pdb</PreBuildEvent>
+  </PropertyGroup>
 </Project>

@@ -16,8 +16,16 @@ namespace PFShop
         public string ClosedFormWithoutAction = "§7表单已关闭，未收到操作";
         public string sellMainTitle = "点击选择你想要购买的物品";
         public string sellMainContent = "";
+        public string sellPreviousList = "<==返回上级菜单";
+        public string sellSubList = "§l{0}\n§o子菜单==>";
+        public string sellListItem = "#{0}§l{1}\n{2}像素币/个";
+
         public string recycleMainTitle = "点击选择你想要回收的物品";
         public string recycleMainContent = "";
+        public string recyclePreviousList = "<==返回上级菜单";
+        public string recycleSubList = "§l{0}\n§o子菜单==>";
+        public string recycleListItem = "#{0}§l{1}\n{2}像素币/个";
+
         public string InputSellDetailTitle = "输入购买数量";
         public string InputRecycleDetailTitle = "输入回收数量";
         public string InputSellDetailContentWhenUseSlider = "\n您已选择 {0}\n\n拖动滑块选择购买数量\n单价:{1}\n      §l§5X§r\n数量";
@@ -41,10 +49,10 @@ namespace PFShop
         public string confirmRecycleCancel = "我再想想";
         public string confirmRecycleCanceled = "回收已取消";
 
-        public string buySuccessfullyTitle = "\n\n\n§b购买成功"; 
+        public string buySuccessfullyTitle = "\n\n\n§b购买成功";
         public string buySuccessfullySubtitle = "已花费 {0} 像素币\n购买 {1} 个 {2}";
         public string buyFailedTitle = "\n\n\n§c购买失败！";
-        public string buyFailedSubtitle= "购买 {1} 个 {2} 需要 {0} 像素币";
+        public string buyFailedSubtitle = "购买 {1} 个 {2} 需要 {0} 像素币";
 
         public string recycleGetItemApiFailed = "API获取失败";
         public string recycleGetItemApiFailedDetail = "api.getPlayerItems()函数尚不支持，请使用CSR商业版运行本插件";
@@ -53,6 +61,7 @@ namespace PFShop
         public string recycleSuccessfullySubtitle = "回收了 {1} 个 {2} 获得 {0} 像素币";
         public string recycleFailedTitle = "\n\n\n§c回收失败！";
         public string recycleFailedSubtitle = "你背包里只有 {3} 个 {2}";
+
 
 
         #region preferenceMain

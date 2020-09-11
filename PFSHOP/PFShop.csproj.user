@@ -4,13 +4,13 @@
     <StartAction>Program</StartAction>
     <StartProgram>C:\Users\gaoxi\source\repos\CSR\BDS\MCModDllExe\MCDllInject.exe</StartProgram>
     <StartWorkingDirectory>C:\Users\gaoxi\source\repos\CSR\BDS\MCModDllExe\</StartWorkingDirectory>
-    <StartArguments>..\MCPE\bedrock_server_mod.exe ..\..\MCModDll</StartArguments>
+    <StartArguments>..\MCPE\bedrock_server.exe ..\..\MCModDll</StartArguments>
     <RemoteDebugEnabled>false</RemoteDebugEnabled>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <StartAction>Program</StartAction>
     <StartProgram>C:\Users\gaoxi\source\repos\CSR\BDS\MCModDllExe\MCDllInject.exe</StartProgram>
-    <StartArguments>..\MCPE\bedrock_server_mod.exe ..\..\MCModDll</StartArguments>
+    <StartArguments>..\MCPE\bedrock_server.exe ..\..\MCModDll</StartArguments>
     <StartWorkingDirectory>C:\Users\gaoxi\source\repos\CSR\BDS\MCModDllExe\</StartWorkingDirectory>
   </PropertyGroup>
 </Project>

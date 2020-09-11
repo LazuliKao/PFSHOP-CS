@@ -1,4 +1,4 @@
-﻿#define FromUrl
+﻿//#define FromUrl
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,6 +17,7 @@ using Ookii.Dialogs.Wpf;
 using System.Diagnostics;
 using System.Net.Sockets;
 using Timer = System.Timers.Timer;
+using System.Windows.Threading;
 //using PFShop;
 
 namespace PFShop
@@ -136,31 +137,73 @@ namespace PFShop
         //#endif
         //            }
         //        }
+        //private static Thread WindowThread = null;
+        private static Dispatcher WindowDispatcher = null;
         private static bool windowOpened = false;
         private static void ShowSettingWindow()
         {
             if (windowOpened) WriteLine("窗体已经打开");
             else
             {
-                if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
-                {
-                    Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
-                    WriteLine("为加载UI,已设置当前运行线程为" + Thread.CurrentThread.GetApartmentState() + "线程");
-                }
+                //    if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
+                //    {
+                //        Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
+                //        WriteLine("为加载UI,已设置当前运行线程为" + Thread.CurrentThread.GetApartmentState() + "线程");
+                //    }
+                //    try
+                //    {
+                //        WriteLine("正在打开窗体");
+                //        Console.Beep();
+                //        var height = Console.WindowHeight;
+                //        var width = Console.WindowWidth;
+                //        windowOpened = true;
+                //        new MainWindow().ShowDialog();
+                //        GC.Collect();
+                //        Console.SetWindowSize(width, height);
+                //        windowOpened = false;
+                //    }
+                //    catch (Exception err) { WriteLine("窗体线程发生严重错误\n信息" + err.ToString()); windowOpened = false; }
                 try
                 {
-                    WriteLine("正在打开窗体");
-                    Console.Beep();
-                    var height = Console.WindowHeight;
-                    var width = Console.WindowWidth;
-                    windowOpened = true;
-                    new MainWindow().ShowDialog();
-                    GC.Collect();
-                    Console.SetWindowSize(width, height);
-                    windowOpened = false;
+                    if (WindowDispatcher == null)
+                    {
+                        Thread WindowThread = new Thread((ThreadStart)delegate { });
+                        WindowThread.SetApartmentState(ApartmentState.STA);
+                        WriteLine("为加载UI,已设置当前插件运行线程为" + WindowThread.GetApartmentState() + "线程");
+                        WindowThread.Start();
+                        WindowDispatcher = Dispatcher.FromThread(WindowThread);
+                        //WindowDispatcher.Thread.Start();
+                    }
                 }
-                catch (Exception err) { WriteLine("窗体线程发生严重错误\n信息" + err.ToString()); windowOpened = false; }
-
+                catch (Exception errr) { WriteLineERR("", errr); }
+                try
+                {
+                    //delegate void OutDelegate(string text);
+                    //void OutText(string text) { };
+                    //OutDelegate outdelegate = new OutDelegate(OutText);
+                    //{
+                    //    txt.AppendText(text);
+                    //    txt.AppendText("\t\n");
+                    //}  
+                    //Dispatcher.FromThread(WindowThread).BeginInvoke((ThreadStart)delegate { });
+                    WindowDispatcher.BeginInvoke((Action)delegate
+                    {
+                        try
+                        {
+                            WriteLine("正在打开窗体");
+                            Console.Beep();
+                            var height = Console.WindowHeight;
+                            var width = Console.WindowWidth;
+                            windowOpened = true;
+                            new MainWindow().ShowDialog();
+                            GC.Collect();
+                            Console.SetWindowSize(width, height);
+                            windowOpened = false;
+                        }
+                        catch (Exception err) { WriteLine("窗体线程发生严重错误\n信息" + err.ToString()); windowOpened = false; }
+                    });
+                }
+                catch (Exception err) { WriteLine("获取窗体线程时发生故障\n信息" + err.ToString()); windowOpened = false; }
             }
         }
         #region API方法补充
@@ -233,7 +276,7 @@ namespace PFShop
         {
             try
             {
-                EqCmd();
+                if (!(cmd.StartsWith("say") || cmd.StartsWith("tellraw"))) EqCmd();
             }
             catch (Exception) { }
             api.runcmd($"execute \"{name}\" ~~~ {cmd}");
@@ -321,16 +364,16 @@ namespace PFShop
         internal static JObject GetButtonRaw(string text) => new JObject { new JProperty("text", text) };
         internal static Func<JArray, JArray> GetSell = (items) =>
        {
-           JArray get = new JArray() { GetButtonRaw("<==返回上级菜单") };
+           JArray get = new JArray() { GetButtonRaw(lang.sellPreviousList) };
            foreach (JObject item in items)
            {
                //WriteLine(GetButton($"#{item.Value<string>("order")}§l{item.Value<string>("name")}\n{(item.Value<decimal>("price") % 1 > 0 ? item["price"].ToString() + '+' : Math.Round(item.Value<decimal>("price")).ToString())}像素币/个"
                //    , item.Value<string>("image")));
-               if (item.ContainsKey("type")) get.Add(GetButtonRaw($"§l{item.Value<string>("type")}\n§o子菜单==>"));
+               if (item.ContainsKey("type")) get.Add(GetButton(string.Format(lang.sellSubList, item.Value<string>("type")), item.Value<string>("image")));
                else
                {
                    decimal price = 0; try { price = item.Value<decimal>("price"); } catch (Exception) { }
-                   get.Add(GetButton($"#{item.Value<string>("order")}§l{item.Value<string>("name")}\n{(price % 1 > 0 ? price.ToString() + '+' : Math.Round(price).ToString())}像素币/个"
+                   get.Add(GetButton(string.Format(lang.sellListItem, item.Value<string>("order"), item.Value<string>("name"), price % 1 > 0 ? price.ToString() + '+' : Math.Round(price).ToString())
                  , item.Value<string>("image")));
                }
            }
@@ -339,14 +382,14 @@ namespace PFShop
        };
         internal static Func<JArray, JArray> GetRecycle = (items) =>
         {
-            JArray get = new JArray() { GetButtonRaw("<==返回上级菜单") };
+            JArray get = new JArray() { GetButtonRaw(lang.recyclePreviousList) };
             foreach (JObject item in items)
             {
-                if (item.ContainsKey("type")) get.Add(GetButtonRaw($"§l{item.Value<string>("type")}\n§o子菜单==>"));
+                if (item.ContainsKey("type")) get.Add(GetButton(string.Format(lang.recycleSubList, item.Value<string>("type")), item.Value<string>("image")));
                 else
                 {
                     decimal award = 0; try { award = item.Value<decimal>("award"); } catch (Exception) { }
-                    get.Add(GetButton($"#{item.Value<string>("order")}§l{item.Value<string>("name")}\n{(award % 1 > 0 ? award.ToString() + '-' : Math.Round(award).ToString())}像素币/个"
+                    get.Add(GetButton(string.Format(lang.recycleListItem, item.Value<string>("order"), item.Value<string>("name"), award % 1 > 0 ? award.ToString() + '-' : Math.Round(award).ToString())
                   , item.Value<string>("image")));
                 }
             }
@@ -550,7 +593,7 @@ namespace PFShop
                         "正在裝載PFSHOP",
                         "作者           gxh2004",
                         "版本信息    v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() ,
-                        "适用于bds1.16(CSRV0.1.16.20.3v4编译)"  ,
+                        "适用于bds1.16(CSRV0.1.16.40.3编译)"  ,
                         "如版本不同可能存在问题" ,
                         "基於C#+WPF窗體"  ,
                         "当前CSRunnerAPI版本:" + api.VERSION  ,
@@ -662,7 +705,7 @@ namespace PFShop
                     {
                         var e = BaseEvent.getFrom(x) as FormSelectEvent;
                         int index = FormQueue.FindIndex(l => l.id == e.formid);
-                        if (index == -1) return false;
+                        if (index == -1) return true;
                         var receForm = FormQueue[index];
                         FormQueue.RemoveAt(index);
                         if (e.selected == "null")
@@ -908,12 +951,16 @@ namespace PFShop
                                                     {
                                                         var slot = slotbase["tv"].ToList();
                                                         int name_i = slot.FindIndex(l => l["ck"].ToString() == "Name");
-                                                        if (slot[name_i]["cv"]["tv"].ToString() == ("minecraft:" + item["id"]))
+                                                        string get_item_name = slot[name_i]["cv"]["tv"].ToString();
+                                                        if (get_item_name == item["id"].ToString() || get_item_name == ("minecraft:" + item["id"]))
                                                         {
                                                             bool block_matched = true;
-                                                            if (item["damage"].ToString() != "-1")
+                                                            if (item["damage"].ToString() != "-1" && item.ContainsKey("regex"))
                                                             {
-                                                                block_matched = Regex.IsMatch(slot.ToString(), item["regex"].ToString());
+#if DEBUG
+                                                                WriteLine(slotbase["tv"].ToString(Newtonsoft.Json.Formatting.None));
+#endif
+                                                                block_matched = Regex.IsMatch(slotbase["tv"].ToString(Newtonsoft.Json.Formatting.None), item["regex"].ToString());
                                                             }
                                                             if (block_matched)
                                                             {
@@ -967,6 +1014,7 @@ namespace PFShop
                     catch (Exception err)
                     {
                         WriteLineERR("EVENT-onFormSelect", err.Message);
+                        return true;
                     }
                     return false;
                 });
