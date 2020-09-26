@@ -453,7 +453,7 @@ namespace PFShop
                         var cells = shopItem.Split('\t');
                         if (cells.Length == 16)
                         {
-                            #region 回收 
+        #region 回收 
                             try { _ = Math.Round(double.Parse(Regex.Replace(cells[7], "[^\\d.]", ""))); } catch { cells[7] = "-1"; }
                             if (cells[2] == "✔")
                             {
@@ -477,8 +477,8 @@ namespace PFShop
                                 else
                                     recyclePath.Add(cells[3]);
                             }
-                            #endregion
-                            #region 购买
+        #endregion
+        #region 购买
                             try { _ = Math.Round(double.Parse(Regex.Replace(cells[14], "[^\\d.]", ""))); } catch { cells[14] = "-1"; }
                             if (cells[10] == "✔")
                             {
@@ -501,7 +501,7 @@ namespace PFShop
                                 else
                                     buyPath.Add(cells[11]);
                             }
-                            #endregion
+        #endregion
 
                             //                                i.type = indexP
                             //                                i.order = cells[1]
@@ -623,7 +623,11 @@ namespace PFShop
                     string languagePath = Path.GetFullPath("plugins\\pfshop\\lang.json");
                     //JObject language = new JObject();
                     if (!Directory.Exists(Path.GetDirectoryName(shopdataPath))) Directory.CreateDirectory(Path.GetDirectoryName(shopdataPath));
-                    if (File.Exists(languagePath)) { lang = JObject.Parse(File.ReadAllText(languagePath)).ToObject<Language>(); }
+                    if (File.Exists(languagePath))
+                    {
+                        lang = Newtonsoft.Json.JsonConvert.DeserializeObject<Language>(File.ReadAllText(languagePath));
+                        //lang = JObject.Parse(File.ReadAllText(languagePath)).ToObject<Language>();
+                    }
                     else { WriteLineERR(lang.CantFindLanguage, string.Format(lang.SaveDefaultLanguageTo, languagePath)); }
                     File.WriteAllText(languagePath, JObject.FromObject(lang).ToString());
                 }
