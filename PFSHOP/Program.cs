@@ -145,24 +145,25 @@ namespace PFShop
             if (windowOpened) WriteLine("窗体已经打开");
             else
             {
-                //    if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
-                //    {
-                //        Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
-                //        WriteLine("为加载UI,已设置当前运行线程为" + Thread.CurrentThread.GetApartmentState() + "线程");
-                //    }
-                //    try
-                //    {
-                //        WriteLine("正在打开窗体");
-                //        Console.Beep();
-                //        var height = Console.WindowHeight;
-                //        var width = Console.WindowWidth;
-                //        windowOpened = true;
-                //        new MainWindow().ShowDialog();
-                //        GC.Collect();
-                //        Console.SetWindowSize(width, height);
-                //        windowOpened = false;
-                //    }
-                //    catch (Exception err) { WriteLine("窗体线程发生严重错误\n信息" + err.ToString()); windowOpened = false; }
+                #region Method1
+                if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
+                {
+                    Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
+                    WriteLine("为加载UI,已设置当前运行线程为" + Thread.CurrentThread.GetApartmentState() + "线程");
+                }
+                try
+                {
+                    WriteLine("正在打开窗体");
+                    Console.Beep();
+                    var height = Console.WindowHeight;
+                    var width = Console.WindowWidth;
+                    windowOpened = true;
+                    new MainWindow().ShowDialog();
+                    GC.Collect();
+                    Console.SetWindowSize(width, height);
+                    windowOpened = false;
+                }
+                catch (Exception err) { WriteLine("窗体线程发生严重错误\n信息" + err.ToString()); windowOpened = false; }
                 try
                 {
                     if (WindowDispatcher == null)
@@ -176,34 +177,35 @@ namespace PFShop
                     }
                 }
                 catch (Exception errr) { WriteLineERR("", errr); }
-                try
-                {
-                    //delegate void OutDelegate(string text);
-                    //void OutText(string text) { };
-                    //OutDelegate outdelegate = new OutDelegate(OutText);
-                    //{
-                    //    txt.AppendText(text);
-                    //    txt.AppendText("\t\n");
-                    //}  
-                    //Dispatcher.FromThread(WindowThread).BeginInvoke((ThreadStart)delegate { });
-                    WindowDispatcher.BeginInvoke((Action)delegate
-                    {
-                        try
-                        {
-                            WriteLine("正在打开窗体");
-                            Console.Beep();
-                            var height = Console.WindowHeight;
-                            var width = Console.WindowWidth;
-                            windowOpened = true;
-                            new MainWindow().ShowDialog();
-                            GC.Collect();
-                            Console.SetWindowSize(width, height);
-                            windowOpened = false;
-                        }
-                        catch (Exception err) { WriteLine("窗体线程发生严重错误\n信息" + err.ToString()); windowOpened = false; }
-                    });
-                }
-                catch (Exception err) { WriteLine("获取窗体线程时发生故障\n信息" + err.ToString()); windowOpened = false; }
+
+                #endregion
+                #region Method2
+                //if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
+                //{
+                //    Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
+                //    WriteLine("为加载UI,已设置当前运行线程为" + Thread.CurrentThread.GetApartmentState() + "线程");
+                //}
+                //try
+                //{
+                //    Dispatcher.CurrentDispatcher.Invoke((Action)delegate
+                //    {
+                //        try
+                //        {
+                //            WriteLine("正在打开窗体");
+                //            Console.Beep();
+                //            var height = Console.WindowHeight;
+                //            var width = Console.WindowWidth;
+                //            windowOpened = true;
+                //            new MainWindow().ShowDialog();
+                //            GC.Collect();
+                //            Console.SetWindowSize(width, height);
+                //            windowOpened = false;
+                //        }
+                //        catch (Exception err) { WriteLine("窗体线程发生严重错误\n信息" + err.ToString()); windowOpened = false; }
+                //    }, DispatcherPriority.Send);
+                //}
+                //catch (Exception err) { WriteLine("获取窗体线程时发生故障\n信息" + err.ToString()); windowOpened = false; }
+                #endregion
             }
         }
         #region API方法补充
@@ -457,15 +459,16 @@ namespace PFShop
                             try { _ = Math.Round(double.Parse(Regex.Replace(cells[7], "[^\\d.]", ""))); } catch { cells[7] = "-1"; }
                             if (cells[2] == "✔")
                             {
-                                getContent(shopRecycle, recyclePath.ToList()).Add(new JObject {
+                                JObject addObj = new JObject {
                                     {"order", cells[1]},
                                     {"name",cells[3] },
                                     {"id",  cells[4]},
                                     {"damage",  cells[5]},
-                                    {"regex",  cells[6]},
                                     {"award", Math.Round(double.Parse(Regex.Replace(cells[7], "[^\\d.-]", "")))},
                                     {"image",string.IsNullOrWhiteSpace(cells[8] ) ? null : cells[8]}
-                                });
+                                };
+                                if (!string.IsNullOrWhiteSpace(cells[6])) addObj.Add("regex", cells[6]);
+                                getContent(shopRecycle, recyclePath.ToList()).Add(addObj);
                             }
                             //分割
                             else if (cells[2] == "═")
@@ -593,7 +596,7 @@ namespace PFShop
                         "正在裝載PFSHOP",
                         "作者           gxh2004",
                         "版本信息    v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() ,
-                        "适用于bds1.16(CSRV0.1.16.40.3编译)"  ,
+                        "适用于bds1.16(CSRV0.1.16.40.2编译)"  ,
                         "如版本不同可能存在问题" ,
                         "基於C#+WPF窗體"  ,
                         "当前CSRunnerAPI版本:" + api.VERSION  ,
@@ -630,47 +633,61 @@ namespace PFShop
                 catch (Exception err) { WriteLineERR("Lang", string.Format(lang.LanguageFileLoadFailed, err.ToString())); }
 #if !DEBUG
                 #region EULA 
-                if (!Directory.Exists(Path.GetDirectoryName(shopdataPath))) Directory.CreateDirectory(Path.GetDirectoryName(shopdataPath));
-                string eulaPath = Path.GetDirectoryName(shopdataPath) + "\\EULA";
-                string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
-                JObject eulaINFO = new JObject { new JProperty("author", "gxh"), new JProperty("version", version) };
-                try
+                int height = Console.WindowHeight, width = Console.WindowWidth; string title = Console.Title;
+                //set
+                Dispatcher.CurrentDispatcher.Invoke(() =>
                 {
-                    if (File.Exists(eulaPath))
+                    try
                     {
-                        if (Encoding.UTF32.GetString(File.ReadAllBytes(eulaPath)) != StringToUnicode(eulaINFO.ToString()).GetHashCode().ToString())
+                        if (!Directory.Exists(Path.GetDirectoryName(shopdataPath))) Directory.CreateDirectory(Path.GetDirectoryName(shopdataPath));
+                        string eulaPath = Path.GetDirectoryName(shopdataPath) + "\\EULA";
+                        string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                        JObject eulaINFO = new JObject { new JProperty("author", "gxh"), new JProperty("version", version) };
+                        try
                         {
-                            WriteLineERR("EULA", "使用条款需要更新!");
-                            File.Delete(eulaPath);
-                            throw new Exception();
+                            if (File.Exists(eulaPath))
+                            {
+                                if (Encoding.UTF32.GetString(File.ReadAllBytes(eulaPath)) != StringToUnicode(eulaINFO.ToString()).GetHashCode().ToString())
+                                {
+                                    WriteLineERR("EULA", "使用条款需要更新!");
+                                    File.Delete(eulaPath);
+                                    throw new Exception();
+                                }
+                            }
+                            else throw new Exception();
+                        }
+                        catch (Exception)
+                        {
+                            Console.Beep(); Console.SetWindowSize(Console.WindowWidth, 3);
+                            WriteLine("请同意使用条款"); Console.Title = "当前控制台会无法操作，请同意使用条款即可恢复";
+                            using (TaskDialog dialog = new TaskDialog())
+                            {
+                                dialog.WindowTitle = "接受食用条款";
+                                dialog.MainInstruction = "假装下面是本插件的食用条款";
+                                dialog.Content =
+                                    "1.请在遵守CSRunner前置使用协议的前提下使用本插件\n" +
+                                    "2.不保证本插件不会影响服务器正常运行，如使用本插件造成服务端奔溃等问题，均与作者无瓜\n" +
+                                    "3.严厉打击插件倒卖等行为，共同维护良好的开源环境";
+                                dialog.ExpandedInformation = "点开淦嘛,没东西[doge]";
+                                dialog.Footer = "本插件 <a href=\"https://github.com/littlegao233/PFShop-CS\">GitHub开源地址</a>.";
+                                dialog.HyperlinkClicked += new EventHandler<HyperlinkClickedEventArgs>((sender, e) => { Process.Start("https://github.com/littlegao233/PFShop-CS"); });
+                                dialog.FooterIcon = TaskDialogIcon.Information;
+                                dialog.EnableHyperlinks = true;
+                                TaskDialogButton acceptButton = new TaskDialogButton("Accept");
+                                dialog.Buttons.Add(acceptButton);
+                                TaskDialogButton refuseButton = new TaskDialogButton("拒绝并关闭本插件");
+                                dialog.Buttons.Add(refuseButton);
+                                if (dialog.ShowDialog() == refuseButton)
+                                    throw new Exception("---尚未接受食用条款，本插件加载失败---");
+                            }
+                            File.WriteAllBytes(eulaPath, Encoding.UTF32.GetBytes(StringToUnicode(eulaINFO.ToString()).GetHashCode().ToString()));
                         }
                     }
-                    else throw new Exception();
-                }
-                catch (Exception)
-                {
-                    using (TaskDialog dialog = new TaskDialog())
-                    {
-                        dialog.WindowTitle = "接受食用条款";
-                        dialog.MainInstruction = "假装下面是本插件的食用条款";
-                        dialog.Content =
-                            "1.请在遵守CSRunner前置使用协议的前提下使用本插件\n" +
-                            "2.不保证本插件不会影响服务器正常运行，如使用本插件造成服务端奔溃等问题，均与作者无瓜\n" +
-                            "3.严厉打击插件倒卖等行为，共同维护良好的开源环境";
-                        dialog.ExpandedInformation = "点开淦嘛,没东西[doge]";
-                        dialog.Footer = "本插件 <a href=\"https://github.com/littlegao233/PFShop-CS\">GitHub开源地址</a>.";
-                        dialog.HyperlinkClicked += new EventHandler<HyperlinkClickedEventArgs>((sender, e) => { Process.Start("https://github.com/littlegao233/PFShop-CS"); });
-                        dialog.FooterIcon = TaskDialogIcon.Information;
-                        dialog.EnableHyperlinks = true;
-                        TaskDialogButton acceptButton = new TaskDialogButton("Accept");
-                        dialog.Buttons.Add(acceptButton);
-                        TaskDialogButton refuseButton = new TaskDialogButton("拒绝并关闭本插件");
-                        dialog.Buttons.Add(refuseButton);
-                        if (dialog.ShowDialog() == refuseButton)
-                            throw new Exception("---尚未接受食用条款，本插件加载失败---");
-                    }
-                    File.WriteAllBytes(eulaPath, Encoding.UTF32.GetBytes(StringToUnicode(eulaINFO.ToString()).GetHashCode().ToString()));
-                }
+                    catch (Exception err) { WriteLineERR("条款获取出错", err); }
+                });
+                //recover  
+                Console.Title = title;
+                Console.SetWindowSize(width, height);
                 #endregion
 #endif
                 //商店信息
@@ -852,8 +869,9 @@ namespace PFShop
                                     {
                                         //receForm.domain;//选择项 
                                         int count = Convert.ToInt32(JArray.Parse(e.selected)[0]);
+                                        if (count > short.MaxValue) throw new Exception();
                                         int total = (int)Math.Ceiling(receForm.domain.Value<decimal>("price") * count);
-                                        if (total > 0)
+                                        if (total > 0 && count > 0)
                                         {
                                             SendForm(new FormINFO(e.playername, FormType.Model, FormTag.confirmedSell)
                                             {
@@ -873,8 +891,9 @@ namespace PFShop
                                     try
                                     {    //receForm.domain;//选择项
                                         int count = Convert.ToInt32(JArray.Parse(e.selected)[0]);
+                                        if (count > short.MaxValue) throw new Exception();
                                         int total = (int)Math.Floor(receForm.domain.Value<decimal>("award") * count);
-                                        if (total > 0)
+                                        if (total > 0 && count > 0)
                                         {
                                             SendForm(new FormINFO(e.playername, FormType.Model, FormTag.confirmedRecycle)
                                             {
@@ -901,7 +920,6 @@ namespace PFShop
                                             ExecuteCMD(e.playername, $"tag @s[scores={{money={total}..}}] add buy_success");
                                             ExecuteCMD(e.playername, "titleraw @s times 5 25 10");
                                             //success
-                                            ExecuteCMD(e.playername, $"give @s[tag=buy_success] {item.Value<string>("id")} {count} {item.Value<string>("damage")}");
                                             ExecuteCMD(e.playername, $"scoreboard players remove @s[tag=buy_success] money {total}");
                                             ExecuteCMD(e.playername, "titleraw @s[tag=buy_success] title {\"rawtext\":[{\"text\":\"" + StringToUnicode(lang.buySuccessfullyTitle) + "\"}]}");
                                             ExecuteCMD(e.playername, $"titleraw @s[tag=buy_success] subtitle {{\"rawtext\":[{{\"text\":\"{StringToUnicode(string.Format(lang.buySuccessfullySubtitle, total, count, item.Value<string>("name")))}\"}}]}}");
@@ -909,6 +927,13 @@ namespace PFShop
                                             ExecuteCMD(e.playername, "titleraw @s[tag=!buy_success] title {\"rawtext\":[{\"text\":\"" + StringToUnicode(lang.buyFailedTitle) + "\"}]}");
                                             ExecuteCMD(e.playername, $"titleraw @s[tag=!buy_success] subtitle {{\"rawtext\":[{{\"text\":\"{StringToUnicode(string.Format(lang.buyFailedSubtitle, total, count, item.Value<string>("name")))}\"}}]}}");
                                             //-END
+                                            //send
+                                            while (count > 0)
+                                            {
+                                                int per_count = Math.Min(36, count);
+                                                count -= per_count;
+                                                ExecuteCMD(e.playername, $"give @s[tag=buy_success] {item.Value<string>("id")} {per_count} {item.Value<string>("damage")}");
+                                            }
                                         }
                                         else
                                         {
@@ -1402,7 +1427,6 @@ namespace PFShop
                 WriteLineERR("插件遇到严重错误，无法继续运行", err.Message);
             }
         }
-
     }
 }
 
