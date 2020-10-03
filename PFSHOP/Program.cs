@@ -1060,8 +1060,8 @@ namespace PFShop
                 #endregion
                 #region 服务器指令
                 // 输入指令监听
-                api.setCommandDescribe("shop", "§r§ePixelFaramitaSHOP商店插件主菜单");
-                api.setCommandDescribeEx("shop reload", "§r§ePixelFaramitaSHOP商店插件主菜单", MCCSAPI.CommandPermissionLevel.Admin, 0, 0);
+                api.setCommandDescribeEx("shop", "§r§ePixelFaramitaSHOP商店插件主菜单", MCCSAPI.CommandPermissionLevel.Any, 0x40, 1);
+                api.setCommandDescribeEx("shop reload", "§r§e商店信息重载", MCCSAPI.CommandPermissionLevel.GameMasters, 0x40,1);
                 //api.setCommandDescribeEx("shopi", "商店插件详细信息", MCCSAPI.CommandPermissionLevel.Admin, 0, 0);
                 base_api.addBeforeActListener(EventKey.onInputCommand, x =>
                 {
