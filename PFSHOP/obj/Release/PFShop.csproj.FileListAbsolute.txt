@@ -16,3 +16,11 @@ C:\Users\gaoxi\source\repos\PFSHOP\PFSHOP\obj\Release\PFShop.csr.dll
 C:\Users\gaoxi\source\repos\PFSHOP\PFSHOP\obj\Release\PFShop.csr.pdb
 C:\Users\gaoxi\source\repos\CSR\CSRDll\PFShop.csr.dll
 C:\Users\gaoxi\source\repos\CSR\CSRDll\PFShop.csr.pdb
+C:\Users\gaoxi\Documents\GitHub\CSR\CSRDll\PFShop.csr.dll
+C:\Users\gaoxi\Documents\GitHub\CSR\CSRDll\PFShop.csr.pdb
+C:\Users\gaoxi\Documents\GitHub\PFSHOP-CS\PFSHOP\obj\Release\PFShop.csprojAssemblyReference.cache
+C:\Users\gaoxi\Documents\GitHub\PFSHOP-CS\PFSHOP\obj\Release\PFShop.csproj.CoreCompileInputs.cache
+C:\Users\gaoxi\Documents\GitHub\PFSHOP-CS\PFSHOP\obj\Release\PFShop.csproj.Fody.CopyLocal.cache
+C:\Users\gaoxi\Documents\GitHub\PFSHOP-CS\PFSHOP\obj\Release\PFShop.csproj.CopyComplete
+C:\Users\gaoxi\Documents\GitHub\PFSHOP-CS\PFSHOP\obj\Release\PFShop.csr.dll
+C:\Users\gaoxi\Documents\GitHub\PFSHOP-CS\PFSHOP\obj\Release\PFShop.csr.pdb
