@@ -8,6 +8,12 @@ namespace PFShop
 {
     public class Language
     {
+        public string ShopMainTitle = "商店";
+        public string ShopMainContent = "来干点什么？";
+        public string ShopMainSell = "出售商店";
+        public string ShopMainRecycle = "回收商店";
+        public string ShopMainPref= "偏好设置";
+
         public string CantFindConfig = "未找到配置文件";
         public string SaveDefaultConfigTo = "已将默认配置文件写入到\n{0}\n请自行修改！";
         public string CantFindLanguage = "未找到语言文件";

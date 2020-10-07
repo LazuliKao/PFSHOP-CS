@@ -401,7 +401,7 @@ namespace PFShop
         #region 方便调用的方法
         internal static void SendMain(string playername)
         {
-            SendForm(new FormINFO(playername, FormType.Simple, FormTag.Main) { title = "商店", content = "来干点什么？", buttons = new JArray { "出售商店", "回收商店", "偏好设置" } });
+            SendForm(new FormINFO(playername, FormType.Simple, FormTag.Main) { title = lang.ShopMainTitle, content = lang.ShopMainContent, buttons = new JArray { lang.ShopMainSell, lang.ShopMainRecycle, lang.ShopMainPref } });
         }
         #endregion
         #endregion
@@ -551,6 +551,7 @@ namespace PFShop
         internal static void Init(MCCSAPI base_api)
         {
             ServerCmdOutputTimer.Elapsed += ServerCmdOutputTimer_Elapsed;
+            WriteLine("test");
             _ = Task.Run(() =>
             {
                 Thread.Sleep(11000);
@@ -637,7 +638,14 @@ namespace PFShop
                 catch (Exception err) { WriteLineERR("Lang", string.Format(lang.LanguageFileLoadFailed, err.ToString())); }
 #if !DEBUG
                 #region EULA 
-                int height = Console.WindowHeight, width = Console.WindowWidth; string title = Console.Title;
+                int height = 0, width = 0; string title = null;
+                try
+                {
+                    height = Console.WindowHeight;
+                    width = Console.WindowWidth; 
+                    title = Console.Title;
+                }
+                catch (Exception) { }
                 //set
                 Dispatcher.CurrentDispatcher.Invoke(() =>
                 {
@@ -662,8 +670,12 @@ namespace PFShop
                         }
                         catch (Exception)
                         {
-                            Console.Beep(); Console.SetWindowSize(Console.WindowWidth, 3);
-                            WriteLine("请同意使用条款"); Console.Title = "当前控制台会无法操作，请同意使用条款即可恢复";
+                            try
+                            {
+                                Console.Beep(); Console.SetWindowSize(Console.WindowWidth, 3);
+                                WriteLine("请同意使用条款"); Console.Title = "当前控制台会无法操作，请同意使用条款即可恢复";
+                            }
+                            catch { }
                             using (TaskDialog dialog = new TaskDialog())
                             {
                                 dialog.WindowTitle = "接受食用条款";
@@ -690,8 +702,15 @@ namespace PFShop
                     catch (Exception err) { WriteLineERR("条款获取出错", err); }
                 });
                 //recover  
-                Console.Title = title;
-                Console.SetWindowSize(width, height);
+                try
+                {
+                    if (title != null)
+                    {
+                        Console.Title = title;
+                        Console.SetWindowSize(width, height);
+                    }
+                }
+                catch (Exception) { }
                 #endregion
 #endif
                 //商店信息
@@ -1086,7 +1105,7 @@ namespace PFShop
                 #region 服务器指令
                 // 输入指令监听
                 api.setCommandDescribeEx("shop", "§r§ePixelFaramitaSHOP商店插件主菜单", MCCSAPI.CommandPermissionLevel.Any, 0x40, 1);
-                api.setCommandDescribeEx("shop reload", "§r§e商店信息重载", MCCSAPI.CommandPermissionLevel.GameMasters, 0x40,1);
+                api.setCommandDescribeEx("shop reload", "§r§e商店信息重载", MCCSAPI.CommandPermissionLevel.GameMasters, 0x40, 1);
                 //api.setCommandDescribeEx("shopi", "商店插件详细信息", MCCSAPI.CommandPermissionLevel.Admin, 0, 0);
                 base_api.addBeforeActListener(EventKey.onInputCommand, x =>
                 {
@@ -1457,7 +1476,7 @@ namespace CSR
                     });
                 }
             });
-            //pluginThread.SetApartmentState(ApartmentState.STA);
+            pluginThread.SetApartmentState(ApartmentState.STA);
             pluginThread.Start();
         }
         internal static void onStart(MCCSAPI api) { SetupPluginThread(api); }
