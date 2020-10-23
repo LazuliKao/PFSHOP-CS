@@ -8,6 +8,10 @@ namespace PFShop
 {
     public class Language
     {
+        public string CommandMain = "§r§ePixelFaramitaSHOP商店插件主菜单";
+        public string CommandReload = "§r§e商店信息重载";
+
+
         public string ShopMainTitle = "商店";
         public string ShopMainContent = "来干点什么？";
         public string ShopMainSell = "出售商店";

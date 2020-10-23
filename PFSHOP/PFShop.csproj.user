@@ -2,15 +2,15 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <StartAction>Program</StartAction>
-    <StartProgram>C:\Users\gaoxi\source\repos\CSR\BDS\MCModDllExe\MCDllInject.exe</StartProgram>
-    <StartWorkingDirectory>C:\Users\gaoxi\source\repos\CSR\BDS\MCModDllExe\</StartWorkingDirectory>
-    <StartArguments>..\MCPE\bedrock_server.exe ..\..\MCModDll</StartArguments>
+    <StartProgram>C:\Users\gaoxi\Documents\GitHub\CSR\BDS\MCDllInject.exe</StartProgram>
+    <StartWorkingDirectory>C:\Users\gaoxi\Documents\GitHub\CSR\BDS</StartWorkingDirectory>
+    <StartArguments>bedrock_server.exe ..\MCModDll</StartArguments>
     <RemoteDebugEnabled>false</RemoteDebugEnabled>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <StartAction>Program</StartAction>
-    <StartProgram>C:\Users\gaoxi\source\repos\CSR\BDS\MCModDllExe\MCDllInject.exe</StartProgram>
-    <StartArguments>..\MCPE\bedrock_server.exe ..\..\MCModDll</StartArguments>
-    <StartWorkingDirectory>C:\Users\gaoxi\source\repos\CSR\BDS\MCModDllExe\</StartWorkingDirectory>
+    <StartProgram>C:\Users\gaoxi\Documents\GitHub\CSR\BDS\MCDllInject.exe</StartProgram>
+    <StartArguments>bedrock_server.exe ..\MCModDll</StartArguments>
+    <StartWorkingDirectory>C:\Users\gaoxi\Documents\GitHub\CSR\BDS</StartWorkingDirectory>
   </PropertyGroup>
 </Project>

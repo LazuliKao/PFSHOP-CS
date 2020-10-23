@@ -551,11 +551,11 @@ namespace PFShop
         internal static void Init(MCCSAPI base_api)
         {
             ServerCmdOutputTimer.Elapsed += ServerCmdOutputTimer_Elapsed;
-            WriteLine("test");
+            //WriteLine("test");
             _ = Task.Run(() =>
             {
                 Thread.Sleep(11000);
-                api.runcmd("scoreboard objectives add money dummy §b像素币");
+                api.runcmd("scoreboard objectives add money dummy §bMoney");
 #if DEBUG
                 //for (int i = 0; i < 20; i++)
                 //{
@@ -597,7 +597,7 @@ namespace PFShop
                         "正在裝載PFSHOP",
                         "作者           gxh2004",
                         "版本信息    v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() ,
-                        "适用于bds1.16(CSRV0.1.16.40.2编译)"  ,
+                        "适用于bds1.16(CSRV0.1.16.40.2v3编译)"  ,
                         "如版本不同可能存在问题" ,
                         "基於C#+WPF窗體"  ,
                         "当前CSRunnerAPI版本:" + api.VERSION  ,
@@ -642,7 +642,7 @@ namespace PFShop
                 try
                 {
                     height = Console.WindowHeight;
-                    width = Console.WindowWidth; 
+                    width = Console.WindowWidth;
                     title = Console.Title;
                 }
                 catch (Exception) { }
@@ -1104,8 +1104,8 @@ namespace PFShop
                 #endregion
                 #region 服务器指令
                 // 输入指令监听
-                api.setCommandDescribeEx("shop", "§r§ePixelFaramitaSHOP商店插件主菜单", MCCSAPI.CommandPermissionLevel.Any, 0x40, 1);
-                api.setCommandDescribeEx("shop reload", "§r§e商店信息重载", MCCSAPI.CommandPermissionLevel.GameMasters, 0x40, 1);
+                api.setCommandDescribeEx("shop", lang.CommandMain, MCCSAPI.CommandPermissionLevel.Any, 0x40, 1);
+                api.setCommandDescribeEx("shop reload", lang.CommandReload, MCCSAPI.CommandPermissionLevel.GameMasters, 0x40, 1);
                 //api.setCommandDescribeEx("shopi", "商店插件详细信息", MCCSAPI.CommandPermissionLevel.Admin, 0, 0);
                 base_api.addBeforeActListener(EventKey.onInputCommand, x =>
                 {
@@ -1479,6 +1479,10 @@ namespace CSR
             pluginThread.SetApartmentState(ApartmentState.STA);
             pluginThread.Start();
         }
-        internal static void onStart(MCCSAPI api) { SetupPluginThread(api); }
+        internal static void onStart(MCCSAPI api)
+        {
+            //Program.Init(api);
+            SetupPluginThread(api);
+        }
     }
 }

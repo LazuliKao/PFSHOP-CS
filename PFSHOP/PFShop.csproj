@@ -21,7 +21,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\CSR\CSRDll\</OutputPath>
+    <OutputPath>..\..\..\..\CSR\CSRDll\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -78,7 +78,6 @@
     <Compile Include="API\MCCSAPI.cs" />
     <Compile Include="API\Plugin.cs" />
     <Compile Include="Form.cs" />
-    <Compile Include="Hook.cs" />
     <Compile Include="Language.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
