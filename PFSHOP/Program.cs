@@ -24,7 +24,31 @@ namespace PFShop
 {
     internal class Program
     {
-        private static MCCSAPI api = null;
+        private static MCCSAPI _api = null;
+        public static MCCSAPI Api
+        {
+            get
+            {
+                return _api;
+            }
+            set => _api = value;
+        }
+        public static MCCSAPI ApiShared
+        {
+            get
+            {
+                for (int i = 0; i < 100; i++)
+                {
+                    if (api_state) break;
+                    Thread.Sleep(10);
+                }
+                api_state = false;
+                return _api;
+            }
+            set => _api = value;
+        }
+        private static bool api_state = true;
+
         #region console
         internal static void WriteLine(object content)
         {
@@ -209,7 +233,12 @@ namespace PFShop
             }
         }
         #region API方法补充
-        internal static string GetUUID(string name) => JArray.Parse(api.getOnLinePlayers()).First(l => l.Value<string>("playername") == name).Value<string>("uuid");
+        internal static string GetUUID(string name)
+        {
+            string getStr = ApiShared.getOnLinePlayers();
+            api_state = true;
+            return JArray.Parse(getStr).First(l => l.Value<string>("playername") == name).Value<string>("uuid");
+        }
         internal static void Feedback(string name, string text) => ExecuteCMD(name, $"tellraw @s {{\"rawtext\":[{{\"text\":\"§e§l[PFSHOP]§r§b{StringToUnicode(text)}\"}}]}}");
         internal static string StringToUnicode(string s)//字符串转UNICODE代码
         {
@@ -254,7 +283,7 @@ namespace PFShop
         {
             if (cmdCount == 0)
             {
-                api.addBeforeActListener(EventKey.onServerCmdOutput, ServerCmdOutputDetect);
+                Api.addBeforeActListener(EventKey.onServerCmdOutput, ServerCmdOutputDetect);
                 if (!ServerCmdOutputTimer.Enabled) ServerCmdOutputTimer.Start();
             }
             cmdCount++;
@@ -267,7 +296,7 @@ namespace PFShop
             cmdCount--;
             if (cmdCount == 0)
             {
-                api.removeBeforeActListener(EventKey.onServerCmdOutput, ServerCmdOutputDetect);
+                Api.removeBeforeActListener(EventKey.onServerCmdOutput, ServerCmdOutputDetect);
                 if (ServerCmdOutputTimer.Enabled) ServerCmdOutputTimer.Stop();
             }
 #if DEBUG
@@ -281,7 +310,8 @@ namespace PFShop
                 if (!(cmd.StartsWith("say") || cmd.StartsWith("tellraw"))) EqCmd();
             }
             catch (Exception) { }
-            api.runcmd($"execute \"{name}\" ~~~ {cmd}");
+            ApiShared.runcmd($"execute \"{name}\" ~~~ {cmd}");
+            api_state = true;
         }
         #endregion
         #endregion
@@ -318,7 +348,8 @@ namespace PFShop
                         {
                             case FormType.Simple:
                                 //WriteLine(form.buttons.ToString()); 
-                                form.id = api.sendSimpleForm(form.playeruuid, form.title, form.content.ToString(), form.buttons.ToString());
+                                form.id = ApiShared.sendSimpleForm(form.playeruuid, form.title, form.content.ToString(), form.buttons.ToString());
+                                api_state = true;
                                 break;
                             case FormType.SimpleIMG:
                                 JArray buttons = new JArray();
@@ -343,13 +374,16 @@ namespace PFShop
                                 new JProperty("title",form.title),
                                 new JProperty("buttons",buttons),
                             };
-                                form.id = api.sendCustomForm(form.playeruuid, content.ToString());
+                                form.id = ApiShared.sendCustomForm(form.playeruuid, content.ToString());
+                                api_state = true;
                                 break;
                             case FormType.Custom:
-                                form.id = api.sendCustomForm(form.playeruuid, new JObject { new JProperty("type", "custom_form"), new JProperty("title", form.title), new JProperty("content", form.content) }.ToString());
+                                form.id = ApiShared.sendCustomForm(form.playeruuid, new JObject { new JProperty("type", "custom_form"), new JProperty("title", form.title), new JProperty("content", form.content) }.ToString());
+                                api_state = true;
                                 break;
                             case FormType.Model:
-                                form.id = api.sendModalForm(form.playeruuid, form.title, form.content.ToString(), form.buttons[0].ToString(), form.buttons[1].ToString());
+                                form.id = ApiShared.sendModalForm(form.playeruuid, form.title, form.content.ToString(), form.buttons[0].ToString(), form.buttons[1].ToString());
+                                api_state = true;
                                 break;
                             default:
                                 break;
@@ -548,22 +582,33 @@ namespace PFShop
         #endregion
         //语言文件
         private static Language lang = new Language();
+
         internal static void Init(MCCSAPI base_api)
         {
             ServerCmdOutputTimer.Elapsed += ServerCmdOutputTimer_Elapsed;
             //WriteLine("test");
             _ = Task.Run(() =>
             {
-                Thread.Sleep(11000);
-                api.runcmd("scoreboard objectives add money dummy §bMoney");
-#if DEBUG
-                //for (int i = 0; i < 20; i++)
-                //{
-                //    api.runcmd("say test");
-                //    EqCmd();
-                //}
-#endif
+                Thread.Sleep(16000);
+                Api.runcmd("scoreboard objectives add money dummy §bMoney");
                 EqCmd();
+#if DEBUG
+                for (int i = 0; i < 200; i++)
+                {
+                    Task.Run(() =>
+                    {
+                        Api.logout("say test");
+                        Api.runcmd("say test");
+                        Api.runcmd("say test");
+                        Api.runcmd("say test");
+                        Api.runcmd("say test");
+                        Api.runcmd("say test");
+                        Api.runcmd("say test");
+                    }
+                   );
+                    EqCmd();
+                }
+#endif
             });
             try
             {
@@ -582,7 +627,7 @@ namespace PFShop
                 //});
 #endif
                 #region 加载
-                api = base_api;
+                Api = base_api;
                 Console.OutputEncoding = Encoding.UTF8;
                 defaultForegroundColor = Console.ForegroundColor;
                 defaultBackgroundColor = Console.BackgroundColor;
@@ -600,7 +645,7 @@ namespace PFShop
                         "适用于bds1.16(CSRV0.1.16.40.2v3编译)"  ,
                         "如版本不同可能存在问题" ,
                         "基於C#+WPF窗體"  ,
-                        "当前CSRunnerAPI版本:" + api.VERSION  ,
+                        "当前CSRunnerAPI版本:" + Api.VERSION  ,
                         "控制台輸入\"pf\"即可打開快速配置窗體(未完善)"  ,
                         "███████████████████████████"
                     };
@@ -739,7 +784,7 @@ namespace PFShop
                 #endregion
                 #endregion
                 // 表单选择监听
-                api.addAfterActListener(EventKey.onFormSelect, x =>
+                Api.addAfterActListener(EventKey.onFormSelect, x =>
                 {
                     try
                     {
@@ -980,7 +1025,7 @@ namespace PFShop
                                             //WriteLine(api.getPlayerItems(uuid));
                                             //WriteLine("-------TEST------");
                                             //File.WriteAllText("plugins\\pfshop\\test.json", ); 
-                                            string getItemsRaw = api.getPlayerItems(GetUUID(e.playername));
+                                            string getItemsRaw = Api.getPlayerItems(GetUUID(e.playername));
                                             if (string.IsNullOrEmpty(getItemsRaw))
                                             {
                                                 WriteLineERR(lang.recycleGetItemApiFailed, lang.recycleGetItemApiFailedDetail);
@@ -988,7 +1033,7 @@ namespace PFShop
                                             }
                                             else
                                             {
-                                                JArray inventory = (JArray)JObject.Parse(api.getPlayerItems(GetUUID(e.playername)))["Inventory"]["tv"];
+                                                JArray inventory = (JArray)JObject.Parse(Api.getPlayerItems(GetUUID(e.playername)))["Inventory"]["tv"];
 #if DEBUG
                                                 File.WriteAllText("plugins\\pfshop\\test.json", inventory.ToString());
 #endif
@@ -1104,8 +1149,8 @@ namespace PFShop
                 #endregion
                 #region 服务器指令
                 // 输入指令监听
-                api.setCommandDescribeEx("shop", lang.CommandMain, MCCSAPI.CommandPermissionLevel.Any, 0x40, 1);
-                api.setCommandDescribeEx("shop reload", lang.CommandReload, MCCSAPI.CommandPermissionLevel.GameMasters, 0x40, 1);
+                Api.setCommandDescribeEx("shop", lang.CommandMain, MCCSAPI.CommandPermissionLevel.Any, 0x40, 1);
+                Api.setCommandDescribeEx("shop reload", lang.CommandReload, MCCSAPI.CommandPermissionLevel.GameMasters, 0x40, 1);
                 //api.setCommandDescribeEx("shopi", "商店插件详细信息", MCCSAPI.CommandPermissionLevel.Admin, 0, 0);
                 base_api.addBeforeActListener(EventKey.onInputCommand, x =>
                 {
@@ -1126,7 +1171,7 @@ namespace PFShop
                                     SendMain(e.playername);
                                     return false;
                                 case "shop reload":
-                                    string PermissionRaw = api.getPlayerPermissionAndGametype(GetUUID(e.playername));
+                                    string PermissionRaw = Api.getPlayerPermissionAndGametype(GetUUID(e.playername));
                                     if (string.IsNullOrEmpty(PermissionRaw)) return true;
                                     JObject permission = JObject.Parse(PermissionRaw);
                                     if (permission.Value<int>("permission") > 1)
