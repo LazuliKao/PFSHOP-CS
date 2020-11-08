@@ -80,3 +80,7 @@ C:\Users\gaoxi\Documents\GitHub\PFSHOP-CS\ManageWindow\obj\Debug\PFSHOPManageWin
 C:\Users\gaoxi\Documents\GitHub\PFSHOP-CS\ManageWindow\obj\Debug\PFSHOPManageWindow.csproj.CopyComplete
 C:\Users\gaoxi\Documents\GitHub\PFSHOP-CS\ManageWindow\obj\Debug\ManageWindow.exe
 C:\Users\gaoxi\Documents\GitHub\PFSHOP-CS\ManageWindow\obj\Debug\ManageWindow.pdb
+C:\Users\gaoxi\Documents\GitHub\PFSHOP-CS\ManageWindow\bin\Debug\AsyncErrorHandler.dll
+C:\Users\gaoxi\Documents\GitHub\PFSHOP-CS\ManageWindow\bin\Debug\System.Runtime.InteropServices.RuntimeInformation.dll
+C:\Users\gaoxi\Documents\GitHub\PFSHOP-CS\ManageWindow\bin\Debug\AsyncErrorHandler.xml
+C:\Users\gaoxi\Documents\GitHub\PFSHOP-CS\ManageWindow\obj\Debug\PFSHOPManageWindow.csproj.Fody.CopyLocal.cache

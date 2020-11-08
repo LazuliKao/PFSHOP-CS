@@ -22,62 +22,66 @@ using System.Windows.Threading;
 
 namespace PFShop
 {
+
     internal class Program
     {
-        private static MCCSAPI _api = null;
-        public static MCCSAPI Api
+        public static class AsyncErrorHandler
         {
-            get
+            public static void HandleException(Exception exception)
             {
-                return _api;
+                Program.WriteLineERR("Task", exception);
             }
-            set => _api = value;
         }
-        public static MCCSAPI ApiShared
-        {
-            get
-            {
-                for (int i = 0; i < 100; i++)
-                {
-                    if (api_state) break;
-                    Thread.Sleep(10);
-                }
-                api_state = false;
-                return _api;
-            }
-            set => _api = value;
-        }
-        private static bool api_state = true;
-
+        public static MCCSAPI Api { get => _Api; set => _Api = value; }
+        private static MCCSAPI _Api = null;
         #region console
+        internal static bool state = false;
+        internal static void DispatcherInvoke(Action action)
+        {
+            while (state) { Thread.Sleep(10); }
+            Dispatcher.CurrentDispatcher.Invoke(() =>
+            {
+            while (state) { Thread.Sleep(10); }
+                state = true;
+                Dispatcher.CurrentDispatcher.Invoke(action, DispatcherPriority.ApplicationIdle);
+                //Dispatcher.Run();
+                state = false;
+            });
+        }
         internal static void WriteLine(object content)
         {
-            Console.Write($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} ");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("PFSHOP");
-            Console.ForegroundColor = defaultForegroundColor;
-            Console.Write("]");
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write("[Main] ");
-            ResetConsoleColor();
-            Console.WriteLine(content);
+            DispatcherInvoke(() =>
+            {
+                Console.Write($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} ");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write("PFSHOP");
+                Console.ForegroundColor = defaultForegroundColor;
+                Console.Write("]");
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write("[Main] ");
+                ResetConsoleColor();
+                Console.WriteLine(content);
+            });
         }
         internal static void WriteLineERR(object type, object content)
         {
-            Console.Write($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} ");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("PFSHOP");
-            Console.ForegroundColor = defaultForegroundColor;
-            Console.Write("]");
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write("[ERROR] ");
-            Console.BackgroundColor = ConsoleColor.DarkRed;
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write($">{type}<");
-            ResetConsoleColor();
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(content);
-            ResetConsoleColor();
+            DispatcherInvoke(() =>
+            {
+                Console.Write($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss} ");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write("PFSHOP");
+                Console.ForegroundColor = defaultForegroundColor;
+                Console.Write("]");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("[ERROR] ");
+                Console.BackgroundColor = ConsoleColor.DarkRed;
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write($">{type}<");
+                ResetConsoleColor();
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(content);
+                ResetConsoleColor();
+            });
         }
         private static ConsoleColor defaultForegroundColor = ConsoleColor.White;
         private static ConsoleColor defaultBackgroundColor = ConsoleColor.Black;
@@ -211,7 +215,7 @@ namespace PFShop
                 //}
                 //try
                 //{
-                //    Dispatcher.CurrentDispatcher.Invoke((Action)delegate
+                //    DispatcherInvoke((Action)delegate
                 //    {
                 //        try
                 //        {
@@ -235,8 +239,7 @@ namespace PFShop
         #region API方法补充
         internal static string GetUUID(string name)
         {
-            string getStr = ApiShared.getOnLinePlayers();
-            api_state = true;
+            string getStr = Api.getOnLinePlayers();
             return JArray.Parse(getStr).First(l => l.Value<string>("playername") == name).Value<string>("uuid");
         }
         internal static void Feedback(string name, string text) => ExecuteCMD(name, $"tellraw @s {{\"rawtext\":[{{\"text\":\"§e§l[PFSHOP]§r§b{StringToUnicode(text)}\"}}]}}");
@@ -310,8 +313,7 @@ namespace PFShop
                 if (!(cmd.StartsWith("say") || cmd.StartsWith("tellraw"))) EqCmd();
             }
             catch (Exception) { }
-            ApiShared.runcmd($"execute \"{name}\" ~~~ {cmd}");
-            api_state = true;
+            DispatcherInvoke(() => Api.runcmd($"execute \"{name}\" ~~~ {cmd}"));
         }
         #endregion
         #endregion
@@ -348,8 +350,7 @@ namespace PFShop
                         {
                             case FormType.Simple:
                                 //WriteLine(form.buttons.ToString()); 
-                                form.id = ApiShared.sendSimpleForm(form.playeruuid, form.title, form.content.ToString(), form.buttons.ToString());
-                                api_state = true;
+                                DispatcherInvoke(() => form.id = Api.sendSimpleForm(form.playeruuid, form.title, form.content.ToString(), form.buttons.ToString()));
                                 break;
                             case FormType.SimpleIMG:
                                 JArray buttons = new JArray();
@@ -374,16 +375,13 @@ namespace PFShop
                                 new JProperty("title",form.title),
                                 new JProperty("buttons",buttons),
                             };
-                                form.id = ApiShared.sendCustomForm(form.playeruuid, content.ToString());
-                                api_state = true;
+                                DispatcherInvoke(() => form.id = Api.sendCustomForm(form.playeruuid, content.ToString()));
                                 break;
                             case FormType.Custom:
-                                form.id = ApiShared.sendCustomForm(form.playeruuid, new JObject { new JProperty("type", "custom_form"), new JProperty("title", form.title), new JProperty("content", form.content) }.ToString());
-                                api_state = true;
+                                DispatcherInvoke(() => form.id = Api.sendCustomForm(form.playeruuid, new JObject { new JProperty("type", "custom_form"), new JProperty("title", form.title), new JProperty("content", form.content) }.ToString()));
                                 break;
                             case FormType.Model:
-                                form.id = ApiShared.sendModalForm(form.playeruuid, form.title, form.content.ToString(), form.buttons[0].ToString(), form.buttons[1].ToString());
-                                api_state = true;
+                                DispatcherInvoke(() => form.id = Api.sendModalForm(form.playeruuid, form.title, form.content.ToString(), form.buttons[0].ToString(), form.buttons[1].ToString()));
                                 break;
                             default:
                                 break;
@@ -583,32 +581,36 @@ namespace PFShop
         //语言文件
         private static Language lang = new Language();
 
+
         internal static void Init(MCCSAPI base_api)
         {
             ServerCmdOutputTimer.Elapsed += ServerCmdOutputTimer_Elapsed;
             //WriteLine("test");
             _ = Task.Run(() =>
             {
-                Thread.Sleep(16000);
-                Api.runcmd("scoreboard objectives add money dummy §bMoney");
-                EqCmd();
 #if DEBUG
-                for (int i = 0; i < 200; i++)
+                ExecuteCMD("gxh", "awa");
+                Thread.Sleep(10000);
+                for (int i = 0; i < 800; i++)
                 {
                     Task.Run(() =>
                     {
-                        Api.logout("say test");
-                        Api.runcmd("say test");
-                        Api.runcmd("say test");
-                        Api.runcmd("say test");
-                        Api.runcmd("say test");
-                        Api.runcmd("say test");
-                        Api.runcmd("say test");
+                        //DispatcherInvoke(() =>
+                        //{
+                        //    _api.logout("say test");
+                        //    _api.runcmd("say test");
+                        //    _api.runcmd("say test");
+                        //    _api.runcmd("say test");
+                        //    _api.runcmd("say test");
+                        //});
+                        ExecuteCMD("gxh", "awa");
                     }
                    );
-                    EqCmd();
                 }
 #endif
+                Thread.Sleep(16000);
+                Api.runcmd("scoreboard objectives add money dummy §bMoney");
+                EqCmd();
             });
             try
             {
@@ -692,7 +694,7 @@ namespace PFShop
                 }
                 catch (Exception) { }
                 //set
-                Dispatcher.CurrentDispatcher.Invoke(() =>
+                DispatcherInvoke(() =>
                 {
                     try
                     {

@@ -21,6 +21,13 @@ namespace ManageWindow
     /// </summary>
     public partial class MainWindow
     {
+        public static class AsyncErrorHandler
+        {
+            public static void HandleException(Exception exception)
+            {
+                WriteLine(exception);
+            }
+        }
         public MainWindow()
         {
             InitializeComponent();
@@ -33,7 +40,7 @@ namespace ManageWindow
         {
             Process.Start("https://github.com/littlegao233/PFShop-CS/releases");
         }
-        public void WriteLine(object content)
+        public static void WriteLine(object content)
         {
             ConsoleColor defaultForegroundColor = Console.ForegroundColor;
             ConsoleColor defaultBackgroundColor = Console.BackgroundColor;

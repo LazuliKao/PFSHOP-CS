@@ -1,8 +1,0 @@
-C:\Users\gaoxi\source\repos\BDSNetRunner\MG\MCPE\CSR\PFSkyLand.csr.dll
-C:\Users\gaoxi\source\repos\BDSNetRunner\MG\MCPE\CSR\PFSkyLand.csr.pdb
-C:\Users\gaoxi\source\repos\BDSNetRunner\CSRDemo\obj\Debug\PFSkyLand.csprojAssemblyReference.cache
-C:\Users\gaoxi\source\repos\BDSNetRunner\CSRDemo\obj\Debug\PFSkyLand.csproj.CoreCompileInputs.cache
-C:\Users\gaoxi\source\repos\BDSNetRunner\CSRDemo\obj\Debug\PFSkyLand.csproj.Fody.CopyLocal.cache
-C:\Users\gaoxi\source\repos\BDSNetRunner\CSRDemo\obj\Debug\PFSkyLand.csproj.CopyComplete
-C:\Users\gaoxi\source\repos\BDSNetRunner\CSRDemo\obj\Debug\PFSkyLand.csr.dll
-C:\Users\gaoxi\source\repos\BDSNetRunner\CSRDemo\obj\Debug\PFSkyLand.csr.pdb
