@@ -694,8 +694,6 @@ namespace PFShop
                 }
                 catch (Exception) { }
                 //set
-                DispatcherInvoke(() =>
-                {
                     try
                     {
                         if (!Directory.Exists(Path.GetDirectoryName(shopdataPath))) Directory.CreateDirectory(Path.GetDirectoryName(shopdataPath));
@@ -747,7 +745,6 @@ namespace PFShop
                         }
                     }
                     catch (Exception err) { WriteLineERR("条款获取出错", err); }
-                });
                 //recover  
                 try
                 {

@@ -122,7 +122,8 @@
 del /f $(TargetDir)Newtonsoft.Json.xml
 del /f $(TargetDir)MaterialDesignExtensions.xml
 del /f $(TargetDir)ManageWindow.exe.config
-del /f $(TargetDir)Ookii.Dialogs.Wpf.xml</PostBuildEvent>
+del /f $(TargetDir)Ookii.Dialogs.Wpf.xml
+del /f $(TargetDir)AsyncErrorHandler.xml</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\MaterialDesignThemes.3.1.3\build\MaterialDesignThemes.targets" Condition="Exists('..\packages\MaterialDesignThemes.3.1.3\build\MaterialDesignThemes.targets')" />
   <PropertyGroup>
