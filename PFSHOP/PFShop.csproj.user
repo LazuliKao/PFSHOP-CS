@@ -4,7 +4,7 @@
     <StartAction>Program</StartAction>
     <StartProgram>C:\Users\gaoxi\Documents\GitHub\CSR\BDS\MCDllInject.exe</StartProgram>
     <StartWorkingDirectory>C:\Users\gaoxi\Documents\GitHub\CSR\BDS</StartWorkingDirectory>
-    <StartArguments>bedrock_server.exe ..\MCModDll</StartArguments>
+    <StartArguments>..\1.16.201.2\bedrock_server.exe ..\1.16.201.2\MCModDll</StartArguments>
     <RemoteDebugEnabled>false</RemoteDebugEnabled>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">

@@ -41,7 +41,7 @@ namespace PFShop
             while (state) { Thread.Sleep(10); }
             Dispatcher.CurrentDispatcher.Invoke(() =>
             {
-            while (state) { Thread.Sleep(10); }
+                while (state) { Thread.Sleep(10); }
                 state = true;
                 Dispatcher.CurrentDispatcher.Invoke(action, DispatcherPriority.ApplicationIdle);
                 //Dispatcher.Run();
@@ -591,7 +591,7 @@ namespace PFShop
 #if DEBUG
                 ExecuteCMD("gxh", "awa");
                 Thread.Sleep(10000);
-                for (int i = 0; i < 800; i++)
+                for (int i = 0; i < 50; i++)
                 {
                     Task.Run(() =>
                     {
@@ -644,7 +644,7 @@ namespace PFShop
                         "正在裝載PFSHOP",
                         "作者           gxh2004",
                         "版本信息    v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() ,
-                        "适用于bds1.16(CSRV0.1.16.40.2v3编译)"  ,
+                        "适用于bds1.16(CSRV0.1.16.201.2编译)"  ,
                         "如版本不同可能存在问题" ,
                         "基於C#+WPF窗體"  ,
                         "当前CSRunnerAPI版本:" + Api.VERSION  ,
@@ -1017,25 +1017,22 @@ namespace PFShop
                                             JObject item = receForm.domain.Value<JObject>("item");
                                             int total = receForm.domain.Value<int>("total");
                                             int count = receForm.domain.Value<int>("count");
+#if DEBUG
+
                                             //WriteLine("-------TEST------");
                                             //string uuid = GetUUID(e.playername);
                                             //// internal static string GetUUID(string name) => JArray.Parse(api.getOnLinePlayers()).First(l => l.Value<string>("playername") == name).Value<string>("uuid");
                                             //WriteLine(uuid);
                                             //WriteLine(api.getPlayerItems(uuid));
                                             //WriteLine("-------TEST------");
-                                            //File.WriteAllText("plugins\\pfshop\\test.json", ); 
+                                            File.WriteAllText("plugins\\pfshop\\test1.json", Api.getPlayerItems(GetUUID(e.playername)));
+                                            File.WriteAllText("plugins\\pfshop\\test2.json", new CsActor(Api, e.playerPtr).InventoryContainer);
+#endif
+
                                             string getItemsRaw = Api.getPlayerItems(GetUUID(e.playername));
-                                            if (string.IsNullOrEmpty(getItemsRaw))
-                                            {
-                                                WriteLineERR(lang.recycleGetItemApiFailed, lang.recycleGetItemApiFailedDetail);
-                                                Feedback(e.playername, lang.recycleGetItemApiFailedDetail);
-                                            }
-                                            else
+                                            if (!string.IsNullOrEmpty(getItemsRaw))
                                             {
                                                 JArray inventory = (JArray)JObject.Parse(Api.getPlayerItems(GetUUID(e.playername)))["Inventory"]["tv"];
-#if DEBUG
-                                                File.WriteAllText("plugins\\pfshop\\test.json", inventory.ToString());
-#endif
                                                 int totalcount = 0;
                                                 foreach (JObject slotbase in inventory)
                                                 {
@@ -1075,6 +1072,45 @@ namespace PFShop
                                                 {
                                                     ExecuteCMD(e.playername, "titleraw @s title {\"rawtext\":[{\"text\":\"" + StringToUnicode(lang.recycleFailedTitle) + "\"}]}");
                                                     ExecuteCMD(e.playername, $"titleraw @s subtitle {{\"rawtext\":[{{\"text\":\"{StringToUnicode(string.Format(lang.recycleFailedSubtitle, total, count, item.Value<string>("name"), totalcount))}\"}}]}}");
+                                                }
+                                            }
+                                            else
+                                            {
+                                                getItemsRaw = new CsActor(Api, e.playerPtr).InventoryContainer;
+                                                JArray inventory = JArray.Parse(getItemsRaw);
+                                                if (((JObject)inventory.First).ContainsKey("rawnameid"))
+                                                {
+                                                    int totalcount = 0;
+                                                    foreach (JObject slotbase in inventory)
+                                                    {
+                                                        try
+                                                        {
+                                                            string get_item_name = slotbase.Value<string>("rawnameid");
+                                                            if (get_item_name == item["id"].ToString())
+                                                            {
+                                                                totalcount += slotbase.Value<int>("count");
+                                                            }
+                                                        }
+                                                        catch (Exception) { }
+                                                    }
+                                                    ExecuteCMD(e.playername, "titleraw @s times 5 25 10");
+                                                    if (totalcount >= count)
+                                                    {
+                                                        ExecuteCMD(e.playername, $"clear @s {item["id"]} -1 {count}");
+                                                        ExecuteCMD(e.playername, "scoreboard players add @s money " + total);
+                                                        ExecuteCMD(e.playername, "titleraw @s title {\"rawtext\":[{\"text\":\"" + StringToUnicode(lang.recycleSuccessfullyTitle) + "\"}]}");
+                                                        ExecuteCMD(e.playername, $"titleraw @s subtitle {{\"rawtext\":[{{\"text\":\"{StringToUnicode(string.Format(lang.recycleSuccessfullySubtitle, total, count, item.Value<string>("name")))}\"}}]}}");
+                                                    }
+                                                    else
+                                                    {
+                                                        ExecuteCMD(e.playername, "titleraw @s title {\"rawtext\":[{\"text\":\"" + StringToUnicode(lang.recycleFailedTitle) + "\"}]}");
+                                                        ExecuteCMD(e.playername, $"titleraw @s subtitle {{\"rawtext\":[{{\"text\":\"{StringToUnicode(string.Format(lang.recycleFailedSubtitle, total, count, item.Value<string>("name"), totalcount))}\"}}]}}");
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    WriteLineERR(lang.recycleGetItemApiFailed, lang.recycleGetItemApiFailedDetail);
+                                                    Feedback(e.playername, lang.recycleGetItemApiFailedDetail);
                                                 }
                                             }
                                         }
