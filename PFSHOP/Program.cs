@@ -90,7 +90,8 @@ namespace PFShop
             Console.ForegroundColor = defaultForegroundColor;
             Console.BackgroundColor = defaultBackgroundColor;
         }
-        #endregion        //internal static Task<T> StartSTATask<T>(Func<T> func)
+        #endregion   
+        //internal static Task<T> StartSTATask<T>(Func<T> func)
         //{
         //    var tcs = new TaskCompletionSource<T>();
         //    var thread = new Thread(() =>
@@ -107,7 +108,7 @@ namespace PFShop
         //    thread.SetApartmentState(ApartmentState.STA);
         //    thread.Start();
         //    return tcs.Task;
-        //} 
+        //}
         //private static Task windowTask = null;
         //        private static Thread windowthread = null;
         //        private static ManualResetEvent manualResetEvent = null;
@@ -644,7 +645,7 @@ namespace PFShop
                         "正在裝載PFSHOP",
                         "作者           gxh2004",
                         "版本信息    v" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() ,
-                        "适用于bds1.16(CSRV0.1.16.201.2编译)"  ,
+                        "适用于bds1.16(CSRV0.1.16.201.2v7编译)"  ,
                         "如版本不同可能存在问题" ,
                         "基於C#+WPF窗體"  ,
                         "当前CSRunnerAPI版本:" + Api.VERSION  ,
@@ -694,57 +695,57 @@ namespace PFShop
                 }
                 catch (Exception) { }
                 //set
+                try
+                {
+                    if (!Directory.Exists(Path.GetDirectoryName(shopdataPath))) Directory.CreateDirectory(Path.GetDirectoryName(shopdataPath));
+                    string eulaPath = Path.GetDirectoryName(shopdataPath) + "\\EULA";
+                    string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                    JObject eulaINFO = new JObject { new JProperty("author", "gxh"), new JProperty("version", version) };
                     try
                     {
-                        if (!Directory.Exists(Path.GetDirectoryName(shopdataPath))) Directory.CreateDirectory(Path.GetDirectoryName(shopdataPath));
-                        string eulaPath = Path.GetDirectoryName(shopdataPath) + "\\EULA";
-                        string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
-                        JObject eulaINFO = new JObject { new JProperty("author", "gxh"), new JProperty("version", version) };
+                        if (File.Exists(eulaPath))
+                        {
+                            if (Encoding.UTF32.GetString(File.ReadAllBytes(eulaPath)) != StringToUnicode(eulaINFO.ToString()).GetHashCode().ToString())
+                            {
+                                WriteLineERR("EULA", "使用条款需要更新!");
+                                File.Delete(eulaPath);
+                                throw new Exception();
+                            }
+                        }
+                        else throw new Exception();
+                    }
+                    catch (Exception)
+                    {
                         try
                         {
-                            if (File.Exists(eulaPath))
-                            {
-                                if (Encoding.UTF32.GetString(File.ReadAllBytes(eulaPath)) != StringToUnicode(eulaINFO.ToString()).GetHashCode().ToString())
-                                {
-                                    WriteLineERR("EULA", "使用条款需要更新!");
-                                    File.Delete(eulaPath);
-                                    throw new Exception();
-                                }
-                            }
-                            else throw new Exception();
+                            Console.Beep(); Console.SetWindowSize(Console.WindowWidth, 3);
+                            WriteLine("请同意使用条款"); Console.Title = "当前控制台会无法操作，请同意使用条款即可恢复";
                         }
-                        catch (Exception)
+                        catch { }
+                        using (TaskDialog dialog = new TaskDialog())
                         {
-                            try
-                            {
-                                Console.Beep(); Console.SetWindowSize(Console.WindowWidth, 3);
-                                WriteLine("请同意使用条款"); Console.Title = "当前控制台会无法操作，请同意使用条款即可恢复";
-                            }
-                            catch { }
-                            using (TaskDialog dialog = new TaskDialog())
-                            {
-                                dialog.WindowTitle = "接受食用条款";
-                                dialog.MainInstruction = "假装下面是本插件的食用条款";
-                                dialog.Content =
-                                    "1.请在遵守CSRunner前置使用协议的前提下使用本插件\n" +
-                                    "2.不保证本插件不会影响服务器正常运行，如使用本插件造成服务端奔溃等问题，均与作者无瓜\n" +
-                                    "3.严厉打击插件倒卖等行为，共同维护良好的开源环境";
-                                dialog.ExpandedInformation = "点开淦嘛,没东西[doge]";
-                                dialog.Footer = "本插件 <a href=\"https://github.com/littlegao233/PFShop-CS\">GitHub开源地址</a>.";
-                                dialog.HyperlinkClicked += new EventHandler<HyperlinkClickedEventArgs>((sender, e) => { Process.Start("https://github.com/littlegao233/PFShop-CS"); });
-                                dialog.FooterIcon = TaskDialogIcon.Information;
-                                dialog.EnableHyperlinks = true;
-                                TaskDialogButton acceptButton = new TaskDialogButton("Accept");
-                                dialog.Buttons.Add(acceptButton);
-                                TaskDialogButton refuseButton = new TaskDialogButton("拒绝并关闭本插件");
-                                dialog.Buttons.Add(refuseButton);
-                                if (dialog.ShowDialog() == refuseButton)
-                                    throw new Exception("---尚未接受食用条款，本插件加载失败---");
-                            }
-                            File.WriteAllBytes(eulaPath, Encoding.UTF32.GetBytes(StringToUnicode(eulaINFO.ToString()).GetHashCode().ToString()));
+                            dialog.WindowTitle = "接受食用条款";
+                            dialog.MainInstruction = "假装下面是本插件的食用条款";
+                            dialog.Content =
+                                "1.请在遵守CSRunner前置使用协议的前提下使用本插件\n" +
+                                "2.不保证本插件不会影响服务器正常运行，如使用本插件造成服务端奔溃等问题，均与作者无瓜\n" +
+                                "3.严厉打击插件倒卖等行为，共同维护良好的开源环境";
+                            dialog.ExpandedInformation = "点开淦嘛,没东西[doge]";
+                            dialog.Footer = "本插件 <a href=\"https://github.com/littlegao233/PFShop-CS\">GitHub开源地址</a>.";
+                            dialog.HyperlinkClicked += new EventHandler<HyperlinkClickedEventArgs>((sender, e) => { Process.Start("https://github.com/littlegao233/PFShop-CS"); });
+                            dialog.FooterIcon = TaskDialogIcon.Information;
+                            dialog.EnableHyperlinks = true;
+                            TaskDialogButton acceptButton = new TaskDialogButton("Accept");
+                            dialog.Buttons.Add(acceptButton);
+                            TaskDialogButton refuseButton = new TaskDialogButton("拒绝并关闭本插件");
+                            dialog.Buttons.Add(refuseButton);
+                            if (dialog.ShowDialog() == refuseButton)
+                                throw new Exception("---尚未接受食用条款，本插件加载失败---");
                         }
+                        File.WriteAllBytes(eulaPath, Encoding.UTF32.GetBytes(StringToUnicode(eulaINFO.ToString()).GetHashCode().ToString()));
                     }
-                    catch (Exception err) { WriteLineERR("条款获取出错", err); }
+                }
+                catch (Exception err) { WriteLineERR("条款获取出错", err); }
                 //recover  
                 try
                 {
@@ -1540,24 +1541,24 @@ namespace CSR
         internal static Thread pluginThread = null;
         internal static void SetupPluginThread(MCCSAPI api)
         {
-            pluginThread = new Thread(() =>
+            //pluginThread = new Thread(() =>
+            //{
+            try
             {
-                try
+                Program.Init(api);
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine("[PFSHOP崩了]（10s后自动重载...）\n错误信息:" + err.ToString());
+                _ = Task.Run(() =>
                 {
-                    Program.Init(api);
-                }
-                catch (Exception err)
-                {
-                    Console.WriteLine("[PFSHOP崩了]（10s后自动重载...）\n错误信息:" + err.ToString());
-                    _ = Task.Run(() =>
-                    {
-                        Thread.Sleep(10000);
-                        SetupPluginThread(api);
-                    });
-                }
-            });
-            pluginThread.SetApartmentState(ApartmentState.STA);
-            pluginThread.Start();
+                    Thread.Sleep(10000);
+                    SetupPluginThread(api);
+                });
+            }
+            //});
+            //pluginThread.SetApartmentState(ApartmentState.STA);
+            //pluginThread.Start();
         }
         internal static void onStart(MCCSAPI api)
         {
