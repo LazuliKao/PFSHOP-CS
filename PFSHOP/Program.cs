@@ -494,14 +494,14 @@ namespace PFShop
                             {
                                 JObject addObj = new JObject {
                                     {"order", cells[1]},
-                                    {"name",cells[3] },
-                                    {"id",  cells[4]},
+                                    {"name",int.Parse(cells[5].ToString()) == -1?cells[3] :$"§c§l【暂时无法回收】\n§r§7{cells[3]}"},
+                                    {"id", int.Parse(cells[5].ToString()) == -1? cells[4]:"unallow"},
                                     {"damage",  cells[5]},
                                     {"award", Math.Round(double.Parse(Regex.Replace(cells[7], "[^\\d.-]", "")))},
                                     {"image",string.IsNullOrWhiteSpace(cells[8] ) ? null : cells[8]}
                                 };
                                 if (!string.IsNullOrWhiteSpace(cells[6])) addObj.Add("regex", cells[6]);
-                                getContent(shopRecycle, recyclePath.ToList()).Add(addObj);
+                                               getContent(shopRecycle, recyclePath.ToList()).Add(addObj);
                             }
                             //分割
                             else if (cells[2] == "═")
@@ -1543,19 +1543,19 @@ namespace CSR
         {
             //pluginThread = new Thread(() =>
             //{
-            try
-            {
-                Program.Init(api);
-            }
-            catch (Exception err)
-            {
-                Console.WriteLine("[PFSHOP崩了]（10s后自动重载...）\n错误信息:" + err.ToString());
-                _ = Task.Run(() =>
-                {
-                    Thread.Sleep(10000);
-                    SetupPluginThread(api);
-                });
-            }
+            //try
+            //{
+            Program.Init(api);
+            //}
+            //catch (Exception err)
+            //{
+            //    Console.WriteLine("[PFSHOP崩了]（10s后自动重载...）\n错误信息:" + err.ToString());
+            //    _ = Task.Run(() =>
+            //    {
+            //        Thread.Sleep(10000);
+            //        SetupPluginThread(api);
+            //    });
+            //}
             //});
             //pluginThread.SetApartmentState(ApartmentState.STA);
             //pluginThread.Start();
